@@ -37,7 +37,7 @@ int redirect_stdincmd(char *filename, char *argv[], char *infilename)
 
     close(0);
 
-    dup2(fid,0);
+    dup(fid);
 
     close(fid);
 
