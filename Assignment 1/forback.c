@@ -14,11 +14,6 @@
 
 #include "forback.h"
 
-int main(int argc, char *argv[])
-{
-  foregroundcmd(argv[1], &argv[2]);
-}
-
 /* start the program specified by filename with the arguments in argv 
    in a new process and wait for termination */
 int foregroundcmd(char *filename, char *argv[])
@@ -27,17 +22,13 @@ int foregroundcmd(char *filename, char *argv[])
   int status;
   if(pID == 0) 
   {
-    printf("Executing child process");
+    printf("Executing child process with foregroundcmd");
     execvp(filename, argv);
   } 
-  else
+  pid_t w = waitpid(pID, &status, 0);
+  if(WIFEXITED(status)) 
   {
-    pid_t w = waitpid(pID, &status, 0);
-    if(WIFEXITED(status)) 
-    {
-      printf("Parent: Child process terminated. Exiting...");
-      exit(0);
-    }
+    printf("Parent: Child process terminated. Exiting...");
   } 
   return 0;
 }
@@ -46,5 +37,11 @@ int foregroundcmd(char *filename, char *argv[])
    in a new process */
 int backgroundcmd(char *filename, char *argv[])
 {
+  pid_t pID = fork();
+  if(pID == 0)
+  {
+    printf("Executing child process with backgroundcmd");
+    execvp(filename, argv);
+  }
   return 0;
 }
