@@ -20,7 +20,14 @@
 int main(int argc, char *argv[])
 {
   printf("In redirect.c :%s , %s \n",argv[1],argv[2]);
-  redirect_stdincmd(argv[1], argv, argv[2]);
+  if(argv[2] == "./testIn")
+  {
+    redirect_stdincmd(argv[1], argv, argv[2]);
+  }
+  else
+  {
+    redirect_stdoutcmd(argv[1], argv, argv[2]);
+  }
   return 0;
 }
 
@@ -56,9 +63,11 @@ int redirect_stdincmd(char *filename, char *argv[], char *infilename)
 int redirect_stdoutcmd(char *filename, char *argv[], char *outfilename)
 {
   pid_t pID = fork();
+  int status;
   if(pID == 0)
   {
-    int fid = creat(outfilename, O_APPEND);
+    printf("Child process started...\n");
+    int fid = creat(outfilename,S_IRWXU|S_IRWXG|S_IRWXO);
 
     close(1);
 
@@ -68,5 +77,15 @@ int redirect_stdoutcmd(char *filename, char *argv[], char *outfilename)
 
     execvp(filename, argv);
   }
+  else
+  {
+    printf("Parent is waiting...");
+    waitpid(pID,&status,0);
+    if(WIFEXITED(status))
+    {
+    printf("Parent: Child process terminated. Exiting...\n");
+    }
+  }
+
   return 0;
 }

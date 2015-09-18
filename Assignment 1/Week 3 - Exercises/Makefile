@@ -1,4 +1,4 @@
-all: testFB redirect testIn
+all: testFB redirect testIn testOut
 
 testFB: forback.o testForAndBackground.o
 	gcc -o testFB forback.o testForAndBackground.o
@@ -18,3 +18,7 @@ testIn: testIn.o
 testIn.o: testIn.c redirect.h
 	gcc -c testIn.c
 
+testOut: testOut.o
+	 gcc -o testOut testOut.o
+testOut.o: testOut.c redirect.h
+	   gcc -c testOut.c
