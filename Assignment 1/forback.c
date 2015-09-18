@@ -14,10 +14,31 @@
 
 #include "forback.h"
 
+int main(int argc, char *argv[])
+{
+  foregroundcmd(argv[1], &argv[2]);
+}
+
 /* start the program specified by filename with the arguments in argv 
    in a new process and wait for termination */
 int foregroundcmd(char *filename, char *argv[])
 {
+  pid_t pID = fork();
+  int status;
+  if(pID == 0) 
+  {
+    printf("Executing child process");
+    execvp(filename, argv);
+  } 
+  else
+  {
+    pid_t w = waitpid(pID, &status, 0);
+    if(WIFEXITED(status)) 
+    {
+      printf("Parent: Child process terminated. Exiting...");
+      exit(0);
+    }
+  } 
   return 0;
 }
 
