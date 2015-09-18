@@ -8,6 +8,12 @@
 
 int main(int argc, char *argv[])
 {
-  foregroundcmd(argv[1], argv);
+  if(*argv[2] == 'a') {
+    printf("A\n");
+    foregroundcmd(argv[1], argv);
+  } else {
+    printf("B\n");
+    backgroundcmd(argv[1], argv);
+  }
   return 0;
 }

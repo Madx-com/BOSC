@@ -43,5 +43,6 @@ int backgroundcmd(char *filename, char *argv[])
     printf("Executing child process with backgroundcmd");
     execvp(filename, argv);
   }
+  sleep(1);
   return 0;
 }
