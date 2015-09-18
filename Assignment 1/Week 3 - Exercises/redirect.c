@@ -19,9 +19,8 @@
 
 int main(int argc, char *argv[])
 {
-  printf("\n In redirect.c :%s , %s , %s\n",argv[1],argv[2],argv[3]);
-  printf("%s\n\n",*argv);
-  redirect_stdincmd(argv[1], argv, argv[3]);
+  printf("In redirect.c :%s , %s \n",argv[1],argv[2]);
+  redirect_stdincmd(argv[1], argv, argv[2]);
   return 0;
 }
 
@@ -30,20 +29,23 @@ int main(int argc, char *argv[])
    wait for termination */
 int redirect_stdincmd(char *filename, char *argv[], char *infilename)
 {
-  pid_t pID = fork();
-  if(pID == 0)
+  pid_t pID;
+  if((pID = fork()) == 0)
   {
+    printf("Child process started..\n.");
     int fid = open(infilename, O_RDONLY);
 
     close(0);
-   
-   printf("Printing out number: %i", fid);
 
-    dup(fid);
+    dup2(fid,0);
 
     close(fid);
 
     execvp(filename, argv);
+  }
+  else
+  {
+    printf("Parent is back\n");
   }
   return 0;
 }

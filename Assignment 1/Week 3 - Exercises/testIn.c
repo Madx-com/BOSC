@@ -6,14 +6,15 @@
 
 int main(int argc, char *argv[])
 {
+  /*
   FILE *inputfile;
   char answer[MAXBUFF];
   char line[MAXBUFF];
-  
+
   printf("In testIn.c size of argv is: %d \n", argc);
   printf("In testIn.c argv[1] is:  %s \n", argv[1]);
 
-  inputfile = fopen(argv[1],"r");
+  inputfile = fopen(argv[2],"r");
 
   while(fgets(line,MAXBUFF,inputfile))
   {
@@ -22,20 +23,26 @@ int main(int argc, char *argv[])
      printf("%s",answer);
     }
   }
-
-/**
-  bool b = false;
-  while(!b)
+  */
+  printf("testIn running\n");
+  int b = 0;
+  while(b == 0)
   {
+    int read;
+    size_t nbytes;
+    nbytes = 100;
+    char *line;
 
-    char *p;
+    read = getline(&line,&nbytes,stdin);
+    /*printf("%d\n",read);*/
+    printf("%s", line);
 
-    scanf('%c', &p);
-    printf('%c', *p);
-    if('e' == *p)
+    if(*line == 'e')
     {
-      b = true;
+      printf("Changing b to 1\n");
+      b = 1;
     }
-  }**/
+  }
+  printf("All done\n");
   return 0;
 }
