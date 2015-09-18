@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "redirect.h"
 
 int main(int argc, char *argv[])
@@ -9,8 +10,8 @@ int main(int argc, char *argv[])
 
     char *p;
 
-    scanf( %c , &p);
-    printf("%s",&p);
+    scanf('%c', &p);
+    printf('%c', *p);
     if('e' == *p)
     {
       b = true;

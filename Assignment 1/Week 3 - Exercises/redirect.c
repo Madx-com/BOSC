@@ -17,6 +17,12 @@
 
 #include "redirect.h"
 
+int main(int argc, char *argv[])
+{
+  redirect_stdincmd(argv[1], argv, argv[3]);
+  return 0;
+}
+
 /* start the program specified by filename with the arguments in argv
    in a new process that has its stdin redirected to infilename and
    wait for termination */
@@ -50,7 +56,7 @@ int redirect_stdoutcmd(char *filename, char *argv[], char *outfilename)
 
     close(1);
 
-    dub(fid);
+    dup(fid);
 
     close(fid);
 
