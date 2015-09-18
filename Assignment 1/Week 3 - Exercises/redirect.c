@@ -19,6 +19,8 @@
 
 int main(int argc, char *argv[])
 {
+  printf("\n In redirect.c :%s , %s , %s\n",argv[1],argv[2],argv[3]);
+  printf("%s\n\n",*argv);
   redirect_stdincmd(argv[1], argv, argv[3]);
   return 0;
 }
@@ -34,6 +36,8 @@ int redirect_stdincmd(char *filename, char *argv[], char *infilename)
     int fid = open(infilename, O_RDONLY);
 
     close(0);
+   
+   printf("Printing out number: %i", fid);
 
     dup(fid);
 
