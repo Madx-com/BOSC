@@ -4,7 +4,8 @@
 
 int main(int argc, char *argv[])
 {
-  char *cmd[] = {"ls","-al","tr","a-z A-Z"};
-  pipecmd(cmd[0], *cmd[1], cmd[2], *cmd[3]);
+  char *cmd1[] = {"/usr/bin/tr","a-z","A-Z",0};
+  char *cmd2[] = {"/bin/ls","-al",0};
+  pipecmd(cmd1[0], cmd1, cmd2[0], cmd2);
   return 0;
 }

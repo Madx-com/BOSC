@@ -1,15 +1,8 @@
-/* 
-
-   Opgave 2
-
-   redirect.c
-
- */
-
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 
 #include <unistd.h>
 #include <sys/wait.h>
@@ -19,16 +12,14 @@
 
 int main(int argc, char *argv[])
 {
-  printf("In redirect.c :%s , %s \n",argv[1],argv[2]);
-  if(argv[2] == "./testIn")
+  if(argc == 3)
   {
-    redirect_stdincmd(argv[1], argv, argv[2]);
+    redirect_stdincmd("./testInOut",argv,argv[1]);
   }
   else
   {
-    redirect_stdoutcmd(argv[1], argv, argv[2]);
+    redirect_stdoutcmd("./testInOut",argv,argv[1]);
   }
-  return 0;
 }
 
 /* start the program specified by filename with the arguments in argv
@@ -36,11 +27,13 @@ int main(int argc, char *argv[])
    wait for termination */
 int redirect_stdincmd(char *filename, char *argv[], char *infilename)
 {
+  int fd[2];
   pid_t pID;
+  int status;
   if((pID = fork()) == 0)
   {
-    printf("Child process started..\n.");
-    int fid = open(infilename, O_RDONLY);
+    printf("In child process started...\n");
+    int fid = open(infilename, O_APPEND,0);
 
     close(0);
 
@@ -52,7 +45,10 @@ int redirect_stdincmd(char *filename, char *argv[], char *infilename)
   }
   else
   {
-    printf("Parent is back\n");
+    waitpid(pID,&status,0);
+    if(WIFEXITED(status)) {
+      printf("Parent is back\n");
+    }
   }
   return 0;
 }
@@ -66,7 +62,7 @@ int redirect_stdoutcmd(char *filename, char *argv[], char *outfilename)
   int status;
   if(pID == 0)
   {
-    printf("Child process started...\n");
+    printf("Out child process started...\n");
     int fid = creat(outfilename,S_IRWXU|S_IRWXG|S_IRWXO);
 
     close(1);
@@ -79,11 +75,11 @@ int redirect_stdoutcmd(char *filename, char *argv[], char *outfilename)
   }
   else
   {
-    printf("Parent is waiting...");
+    printf("Parent is waiting...\n");
     waitpid(pID,&status,0);
     if(WIFEXITED(status))
     {
-    printf("Parent: Child process terminated. Exiting...\n");
+      printf("Parent: Child process terminated. Exiting...\n");
     }
   }
 
