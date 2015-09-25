@@ -1,6 +1,9 @@
 testOut running
-b
-g
+a
+this
+is
+a
+outfile
 e
 Changing b to 1
 All done
