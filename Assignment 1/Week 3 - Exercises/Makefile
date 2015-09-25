@@ -1,4 +1,4 @@
-all: testFB redirect testIn testOut
+all: testFB redirect testIn testOut testPipe
 
 testFB: forback.o testForAndBackground.o
 	gcc -o testFB forback.o testForAndBackground.o
@@ -22,3 +22,13 @@ testOut: testOut.o
 	 gcc -o testOut testOut.o
 testOut.o: testOut.c redirect.h
 	   gcc -c testOut.c
+
+pipe: pipe.o
+	gcc -o pipe pipe.o
+pipe.o: pipe.c pipe.h
+	gcc -c pipe.c
+
+testPipe: testpipe.o
+	  gcc -o testPipe testpipe.o
+testpipe.o: testpipe.c pipe.h
+	    gcc -c testpipe.c
