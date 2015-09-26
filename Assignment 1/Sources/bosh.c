@@ -18,10 +18,22 @@
 #define HOSTNAMEMAX 100
 
 /* --- use the /proc filesystem to obtain the hostname --- */
-char *gethostname(char *hostname)
+char *gethostname(char *hostname[])
 {
-  hostname = "";
-  return hostname;
+  char hostfile[] = "/proc/sys/kernel/hostname"; /* hostname file */
+
+  FILE *fp;
+  char *line = NULL;
+  size_t len = 0;
+  ssize_t read; 
+
+  fp = fopen(hostfile,"r"); 
+  if((read = getline(&line, &len, fp)) != -1) /* get the hostname from line 1 */
+  { 
+    strtok(line,"\n"); /* remove newline token */
+    *hostname = line;
+  }
+  return *hostname;
 }
 
 /* --- execute a shell command --- */
@@ -37,16 +49,15 @@ int main(int argc, char* argv[]) {
 
   /* initialize the shell */
   char *cmdline;
-  char hostname[HOSTNAMEMAX];
+  char *hostname[HOSTNAMEMAX]; /* changed to a pointer */
   int terminate = 0;
   Shellcmd shellcmd;
 
   if (gethostname(hostname)) {
-
     /* parse commands until exit or ctrl-c */
     while (!terminate) {
-      printf("%s", hostname);
-      if (cmdline = readline(":# ")) {
+      printf("%s", *hostname);
+      if (cmdline = readline(":$ ")) {
 	if(*cmdline) {
 	  add_history(cmdline);
 	  if (parsecommand(cmdline, &shellcmd)) {
