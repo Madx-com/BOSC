@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
   char hostname[HOSTNAMEMAX];
   int terminate = 0;
   Shellcmd shellcmd;
-  
+
   if (gethostname(hostname)) {
 
     /* parse commands until exit or ctrl-c */
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
       } else terminate = 1;
     }
     printf("Exiting bosh.\n");
-  }    
-    
+  }
+
   return EXIT_SUCCESS;
 }
 

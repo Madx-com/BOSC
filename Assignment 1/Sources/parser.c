@@ -40,7 +40,7 @@ int parsecommand(char *cmdline, Shellcmd *shellcmd)
 
   // Initialize list
   for (i = 0; i < COMMANDMAX-1; i++) cmdbuf[i].next = &cmdbuf[i+1];
-    
+
   cmdbuf[COMMANDMAX-1].next = NULL;
   cmds = cmdbuf;
   cp = cbuf;
@@ -93,7 +93,7 @@ int parsecommand(char *cmdline, Shellcmd *shellcmd)
 	    fprintf(stderr, "duplicate redirection of stdin\n");
 	    return -1;
 	  }
-	if ((n = nexttoken(t, &(shellcmd->rd_stdin))) < 0) 
+	if ((n = nexttoken(t, &(shellcmd->rd_stdin))) < 0)
 	  return -1;
 	if (!isidentifier(shellcmd->rd_stdin))
 	  {
@@ -108,7 +108,7 @@ int parsecommand(char *cmdline, Shellcmd *shellcmd)
 	    fprintf(stderr, "duplicate redirection of stdout\n");
 	    return -1;
 	  }
-	if ((n = nexttoken(t, &(shellcmd->rd_stdout))) < 0) 
+	if ((n = nexttoken(t, &(shellcmd->rd_stdout))) < 0)
 	  return -1;
 	if (!isidentifier(shellcmd->rd_stdout))
 	  {
