@@ -18,7 +18,7 @@
 #define HOSTNAMEMAX 100
 
 /* --- use the /proc filesystem to obtain the hostname --- */
-char *gethostname(char *hostname[])
+char *gethostname(char **hostname)
 {
   char hostfile[] = "/proc/sys/kernel/hostname"; /* hostname file */
 
@@ -39,6 +39,28 @@ char *gethostname(char *hostname[])
 /* --- execute a shell command --- */
 int executeshellcmd (Shellcmd *shellcmd)
 {
+  char **cmd;
+  Cmd *cmd0;
+
+  cmd0 = shellcmd->the_cmds;
+  cmd = cmd0->cmd;
+
+  if(strcmp(*cmd,"ls") == 0) 
+  {
+    printf("ls achieved\n");
+  }
+  else if(strcmp(*cmd,"cat") == 0)
+  {
+    printf("cat achieved\n");
+  }
+  else if(strcmp(*cmd,"wc") == 0)
+  {
+    printf("wc achieved\n");
+  }
+  else if(strcmp(*cmd,"exit") == 0)
+  {
+    return 1;
+  }
   printshellcmd(shellcmd);
 
   return 0;
@@ -67,6 +89,7 @@ int main(int argc, char* argv[]) {
 	free(cmdline);
       } else terminate = 1;
     }
+    free(*hostname);
     printf("Exiting bosh.\n");
   }
 
