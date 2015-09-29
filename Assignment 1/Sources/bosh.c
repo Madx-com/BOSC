@@ -39,25 +39,37 @@ char *gethostname(char **hostname)
 /* --- execute a shell command --- */
 int executeshellcmd (Shellcmd *shellcmd)
 {
+  int fid;
+  int pd[2];
   char **cmd;
   Cmd *cmd0;
 
   cmd0 = shellcmd->the_cmds;
   cmd = cmd0->cmd;
 
-  if(strcmp(*cmd,"ls") == 0) 
+  if(shellcmd->rd_stdin != NULL)
   {
-    printf("ls achieved\n");
+    
   }
-  else if(strcmp(*cmd,"cat") == 0)
+
+  if(shellcmd->rd_stdout != NULL)
   {
-    printf("cat achieved\n");
+    
   }
-  else if(strcmp(*cmd,"wc") == 0)
+
+  if(shellcmd->background)
   {
-    printf("wc achieved\n");
+    
   }
-  else if(strcmp(*cmd,"exit") == 0)
+
+  if(cmd0->next)
+  {
+    
+  }
+
+  execvp(*cmd,cmd);
+
+  if(strcmp(*cmd,"exit") == 0)
   {
     return 1;
   }
