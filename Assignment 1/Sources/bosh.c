@@ -11,8 +11,11 @@
 #include <string.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+
 #include "parser.h"
 #include "print.h"
+#include "forback.h"
+#include "pipe.h"
 
 /* --- symbolic constants --- */
 #define HOSTNAMEMAX 100
@@ -25,11 +28,11 @@ char *gethostname(char **hostname)
   FILE *fp;
   char *line = NULL;
   size_t len = 0;
-  ssize_t read; 
+  ssize_t read;
 
-  fp = fopen(hostfile,"r"); 
+  fp = fopen(hostfile,"r");
   if((read = getline(&line, &len, fp)) != -1) /* get the hostname from line 1 */
-  { 
+  {
     strtok(line,"\n"); /* remove newline token */
     *hostname = line;
   }
@@ -39,13 +42,12 @@ char *gethostname(char **hostname)
 /* --- execute a shell command --- */
 int executeshellcmd (Shellcmd *shellcmd)
 {
-  int fid;
-  int pd[2];
-  char **cmd;
-  Cmd *cmd0;
+  printshellcmd(shellcmd);
+  char **cmd0;
+  Cmd *cmds;
 
-  cmd0 = shellcmd->the_cmds;
-  cmd = cmd0->cmd;
+  cmds = shellcmd->the_cmds;
+  cmd0 = cmds->cmd;
 
   if(shellcmd->rd_stdin != NULL)
   {
@@ -69,11 +71,39 @@ int executeshellcmd (Shellcmd *shellcmd)
 
   execvp(*cmd,cmd);
 
-  if(strcmp(*cmd,"exit") == 0)
+  if(strcmp(*cmd0,"exit") == 0)
   {
     return 1;
   }
-  printshellcmd(shellcmd);
+
+  if(cmds->next != NULL)
+  {
+    Cmd *cmds1 = cmds->next;
+    char **cmd1 = cmd0;
+    char **cmd2 = cmds1->cmd;
+    
+    do
+    {
+      pipecmd(*cmd1, cmd1, *cmd2, cmd2);
+      if(cmds1->next != NULL)
+      {
+	cmd1 = cmd2;
+        Cmd *tempcmd = cmds1->next;
+        cmds1 = tempcmd;
+        cmd2 = cmds1->cmd;
+      }
+    }
+    while(cmds1->next != NULL);
+  }
+
+  if(shellcmd->background == 1)
+  {
+    backgroundcmd(*cmd0, cmd0, shellcmd->rd_stdin, shellcmd->rd_stdout);
+  }
+  else
+  {
+    foregroundcmd(*cmd0, cmd0, shellcmd->rd_stdin, shellcmd->rd_stdout);
+  }
 
   return 0;
 }
