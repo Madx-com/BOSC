@@ -7,41 +7,43 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 
-#include "pipe.h"
-#include "forback.h"
+#include "parser.h"
 
-/* create a pipe between two new processes, executing the programs
-   specified by filename1 and filename2 with the arguments in argv1
-   and argv2 and wait for termination */
-int pipecmd(char *filename1, char *argv1[], char *filename2, char *argv2[])
+/* execute commands with pipe */
+int pipecmd(Cmd *cmds)
 {
   int pfd[2];
-  pipe(pfd); /* Create the pipe */
-
-  pid_t pid = fork();
+  pid_t pid;
   int status;
 
-  if(pid == 0)
+  char **cmd = cmds->cmd;
+  Cmd *nextcmds = cmds->next;
+
+  if(cmds != NULL)
   {
-    dup2(pfd[0],0); /* Replace stdin */
+    pipe(pfd); /* Create the pipe */
 
-    close(pfd[1]);
+    if((pid = fork()) == 0)
+    {
+      dup2(pfd[0],0); /* Replace stdin */
 
-    execvp(filename1, argv1);
+      close(pfd[1]);
+      
+      execvp(*cmd, cmd);
+    }
+    else
+    {
+      dup2(pfd[1],1); /* Replace stdout */
+
+      close(pfd[0]);
+
+      pipecmd(nextcmds);
+    }
   }
-  else
-  {
-    dup2(pfd[1],1); /* Replace stdout */
-
-    close(pfd[0]);
-
-    execvp(filename2, argv2);
-  }
-
-  waitpid(pid,&status,0);
-
-  close(pfd[0]); 
   
+  wait(&status);
+
+  close(pfd[0]);
   close(pfd[1]);
 
   return 0;

@@ -1,6 +1,6 @@
 all: bosh
 
-OBJS = parser.o print.o forback.o pipe.o bosh.o 
+OBJS = parser.o print.o execmds.o bosh.o pipe.o
 LIBS= -lreadline -ltermcap
 CC = gcc
 
