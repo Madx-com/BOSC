@@ -33,7 +33,7 @@ int pipecmd(Cmd *cmds)
       
       exe = execvp(*cmd, cmd);
     }
-    else
+    else /* Parent */
     {
       dup2(pfd[1],1); /* Replace stdout */
 
@@ -42,7 +42,7 @@ int pipecmd(Cmd *cmds)
       pipecmd(nextcmds);
     }
   }
-  /* Parent */
+
   wait(&status);
 
   close(pfd[0]);
