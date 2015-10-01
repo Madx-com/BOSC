@@ -17,7 +17,7 @@ int pipecmd(Cmd *cmds)
   int status;
 
   char **cmd = cmds->cmd;
-  Cmd *nextcmds = cmds->next;
+  Cmd *nextcmds = cmds->next; /* Set next */
 
   int exe;
 
@@ -25,7 +25,7 @@ int pipecmd(Cmd *cmds)
   {
     pipe(pfd); /* Create the pipe */
 
-    if((pid = fork()) == 0)
+    if((pid = fork()) == 0) /* Child */
     {
       dup2(pfd[0],0); /* Replace stdin */
 
@@ -42,13 +42,13 @@ int pipecmd(Cmd *cmds)
       pipecmd(nextcmds);
     }
   }
-  
+  /* Parent */
   wait(&status);
 
   close(pfd[0]);
   close(pfd[1]);
 
-  if(exe)
+  if(exe) /* Command not found */
   {
 	return exe;
   }

@@ -10,6 +10,7 @@
 
 #include "parser.h"
 
+/* executes commands */
 int executecmds(Cmd *cmds, char *infilename, char *outfilename, int bg)
 {
   char **cmd0 = cmds->cmd;
@@ -20,7 +21,7 @@ int executecmds(Cmd *cmds, char *infilename, char *outfilename, int bg)
   
   int exe;
 
-  if(pid == 0)
+  if(pid == 0) /* Child */
   {
     if(infilename != NULL)
     {
@@ -33,7 +34,7 @@ int executecmds(Cmd *cmds, char *infilename, char *outfilename, int bg)
       close(fid);
     }
 
-    if(outfilename != NULL)
+    if(outfilename != NULL) /* Check for  */
     {
       int fid = creat(outfilename,S_IRWXU|S_IRWXG|S_IRWXO);
 
@@ -44,7 +45,7 @@ int executecmds(Cmd *cmds, char *infilename, char *outfilename, int bg)
       close(fid);
     }
 
-    if(nextcmds != NULL)
+    if(nextcmds != NULL) /* Check if there are more commands */
     {
       exe = pipecmd(cmds);
     }
@@ -53,12 +54,12 @@ int executecmds(Cmd *cmds, char *infilename, char *outfilename, int bg)
       exe = execvp(*cmd0, cmd0);
     }
   }
-  else if(bg != 1)
+  else if(bg != 1) /* Parent */
   {
     waitpid(pid, &status, 0);
   }
 
-  if(exe)
+  if(exe) /* Command not found */
   {
 	return exe;
   }
