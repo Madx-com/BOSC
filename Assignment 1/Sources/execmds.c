@@ -18,6 +18,8 @@ int executecmds(Cmd *cmds, char *infilename, char *outfilename, int bg)
   pid_t pid = fork();
   int status;
   
+  int exe;
+
   if(pid == 0)
   {
     if(infilename != NULL)
@@ -44,16 +46,22 @@ int executecmds(Cmd *cmds, char *infilename, char *outfilename, int bg)
 
     if(nextcmds != NULL)
     {
-      pipecmd(cmds);
+      exe = pipecmd(cmds);
     }
     else
     {
-      execvp(*cmd0, cmd0);
+      exe = execvp(*cmd0, cmd0);
     }
   }
   else if(bg != 1)
   {
     waitpid(pid, &status, 0);
   }
+
+  if(exe)
+  {
+	return exe;
+  }
+
   return 0;
 }

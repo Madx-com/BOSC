@@ -56,8 +56,13 @@ int executeshellcmd(Shellcmd *shellcmd)
     return 1;
   }
 
-  executecmds(cmds, shellcmd->rd_stdin, shellcmd->rd_stdout, shellcmd->background);
-  
+  int i = executecmds(cmds, shellcmd->rd_stdin, shellcmd->rd_stdout, shellcmd->background);
+
+  if(i == -1)
+  {
+	printf("Command not found\n");
+  }
+
   return 0;
 }
 

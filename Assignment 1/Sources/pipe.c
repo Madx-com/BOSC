@@ -19,6 +19,8 @@ int pipecmd(Cmd *cmds)
   char **cmd = cmds->cmd;
   Cmd *nextcmds = cmds->next;
 
+  int exe;
+
   if(cmds != NULL)
   {
     pipe(pfd); /* Create the pipe */
@@ -29,7 +31,7 @@ int pipecmd(Cmd *cmds)
 
       close(pfd[1]);
       
-      execvp(*cmd, cmd);
+      exe = execvp(*cmd, cmd);
     }
     else
     {
@@ -45,6 +47,11 @@ int pipecmd(Cmd *cmds)
 
   close(pfd[0]);
   close(pfd[1]);
+
+  if(exe)
+  {
+	return exe;
+  }
 
   return 0;
 }
