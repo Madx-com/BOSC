@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <math.h>
+#include <sys/time.h>
 
 typedef struct
 {
@@ -11,11 +12,16 @@ typedef struct
 SQRTSUM sqrtsum; /* globally shared struct */
 pthread_mutex_t mutex_sqrtsum; /* PThread mutex variable */
 
+struct timeval tp1, tp2;
+struct timezone tpz1, tpz2;
+
 void *runner(void *param); /* threads call this function */
 
 /* Takes 2 arguments, a number N for the summation limit and t as in number of threads */
 int main(int argc, char *argv[])
 {
+	gettimeofday(&tp1, &tpz1);
+
 	if (atoi(argv[1]) < 0)
 	{
 		fprintf(stderr, "%d must be over >= 0\n", atoi(argv[1]));
@@ -46,9 +52,12 @@ int main(int argc, char *argv[])
 	{
 		pthread_join(tid[i],NULL);
 	}
-
 	printf("sqrtsum = %f\n", sqrtsum.sum);
 
+	gettimeofday(&tp2, &tpz2);
+
+	int time = (tp2.tv_sec - tp1.tv_sec) * 1000 + (tp2.tv_usec - tp1.tv_usec) / 1000;
+	printf("Total time(ms): %d\n", time);
 	return 0;
 }
 
