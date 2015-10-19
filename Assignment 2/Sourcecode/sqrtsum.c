@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 
-typedef struct 
+typedef struct
 {
 	int n;
 	double sum;
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 	pthread_attr_init(&attr);
 	/* set the attribute as joinable, so the threads can join with the main thread */
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-	
+
 	/* create the threads */
 	for (i = 0; i < NUM_THREADS; i++)
 	{
@@ -48,34 +48,30 @@ int main(int argc, char *argv[])
 	}
 
 	printf("sqrtsum = %f\n", sqrtsum.sum);
+
+	return 0;
 }
 
 /* Threads will use this function */
 void *runner(void *param)
 {
-	int i, n, start, tid, upper;	
-	
+	int i, n, start, tid, upper;
+
 	double lsqrtsum = 0.0; /* local sum variable */
 	n = sqrtsum.n; /* short summation limit */
 	tid = (int)param; /* thread id */
-	printf("Thread id: %d\n", tid);
-	start = n * tid; /* start value */	
-	if(start != 0)
-	{
-		start += 1;
-		upper = start + n - 1;
-	}
-	else
-	{
-		upper = start + n;
-	}
-	printf("%d. Start value: %d\n", tid, start);
-	printf("%d. Upper value: %d\n", tid, upper);
-	
-	for (i = start; i <= upper ; i++)
+
+	start = n * tid + 1; /* start value for loop */
+	printf("Thread %d: Start value: %d\n", tid, start);
+	upper = start + n; /* upper value for loop */
+	printf("Thread %d: Upper value: %d\n", tid, upper);
+
+	for (i = start; i < upper ; i++)
 	{
 		lsqrtsum += sqrt(i);
 	}
+
+	printf("Thread %d: Local sqrtsum: %f\n", tid, lsqrtsum);
 
 	pthread_mutex_lock(&mutex_sqrtsum);	/* lock mutex */
 	sqrtsum.sum += lsqrtsum; /* update global struct variable */
