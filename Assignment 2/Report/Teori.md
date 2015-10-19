@@ -1,0 +1,3 @@
+# Teori
+
+\newpage
