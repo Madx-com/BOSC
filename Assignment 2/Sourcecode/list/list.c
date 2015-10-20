@@ -30,6 +30,7 @@ List *list_new(void)
 void list_add(List *l, Node *n)
 {
 	l->last = l->last->next = n;
+	l->len += 1;
 }
 
 /* list_remove: remove and return the first (non-root) element from list l */
@@ -42,6 +43,8 @@ Node *list_remove(List *l)
 	{
 		l->first->next = n->next;
 	}
+
+	l->len -= 1;
 
 	return n;
 }
