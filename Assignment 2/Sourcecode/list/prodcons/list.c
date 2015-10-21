@@ -31,10 +31,10 @@ List *list_new(void)
 /* list_add: add node n to list l as the last element */
 void list_add(List *l, Node *n)
 {
-	printf("Adding %s...\n",n->elm);
 	pthread_mutex_lock(&mtx);
 	l->last = l->last->next = n;
 	l->len += 1;
+	printf("length: %d\n", l->len);
 	pthread_mutex_unlock(&mtx);
 }
 
@@ -44,10 +44,8 @@ Node *list_remove(List *l)
 	Node *n;	
 
 	pthread_mutex_lock(&mtx);
-	printf("Removing...\n");
 	if(l->len == 0)
 	{
-		printf("List is empty\n");
 		pthread_mutex_unlock(&mtx);
 		pthread_exit(NULL);
 	}

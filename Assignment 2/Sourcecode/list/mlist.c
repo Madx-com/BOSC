@@ -69,8 +69,7 @@ void *mlist_remove(void *param)
 
 	if(ml->l->len == 0)
 	{
-		ml->l->first = ml->l->last;
-		ml->l->last->next = NULL;
+		ml->l->last = node_new();
 	}
 
 	/* unlocking mutex */

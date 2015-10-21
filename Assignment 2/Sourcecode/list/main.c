@@ -72,20 +72,13 @@ int main(int argc, char* argv[])
 void *thread_add(void *param)
 {
 	Node *n = (Node *)param;
-	pthread_mutex_lock(&mtx);
-	printf("Adding %s...\n",n->elm);
 	list_add(fifo, n);
-	pthread_mutex_unlock(&mtx);
 }
 
 void *thread_remove(void *param)
 {
 	Node *n;
-	pthread_mutex_lock(&mtx);
-	printf("Removing...\n");
 	n = list_remove(fifo);
-	printf("%s\n",n->elm);
-	pthread_mutex_unlock(&mtx);
 }
 
 
