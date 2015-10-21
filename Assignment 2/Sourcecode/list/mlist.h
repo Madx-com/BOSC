@@ -23,7 +23,6 @@ typedef struct list {
 typedef struct mlist {
 	Node *n;
 	List *l;
-	pthread_mutex_t mtx;
 } MList;
 
 /* functions */

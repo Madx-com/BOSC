@@ -1,6 +1,6 @@
 all: prodcons
 
-OBJS = list.o prodcons.o
+OBJS = mlist.o prodcons.o
 LIBS = -pthread
 
 prodcons: prodcons.o ${OBJS}

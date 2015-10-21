@@ -4,16 +4,17 @@
 #include <string.h>
 #include <semaphore.h>
 #include <sys/time.h>
-#include "list.h"
+#include "mlist.h"
 
 typedef struct pc {
 	List *l;
-	int produced;
-	int consumed;
 	sem_t full;
 	sem_t empty;
 	sem_t mutex;
 } PC;
+
+int p;
+int c;
 
 PC prodcons;
 
@@ -60,9 +61,9 @@ int main(int argc, char *argv[])
 	int num_iter = PRODUCTS_IN_TOTAL / PRODUCERS;
 	int remainder = PRODUCTS_IN_TOTAL % PRODUCERS;
 
+	/* create the producers */
 	for(i = 0; i < PRODUCERS; i++)
 	{	
-		printf("%d. Prod ForLoop\n", i);
 		if((i+1) == PRODUCERS)
 		{
 			num_iter = num_iter+remainder;
@@ -70,17 +71,19 @@ int main(int argc, char *argv[])
 		pthread_create(&pid[i], &attr, producer, (void *)num_iter);
 	}
 	
+	/* create the consumers */
 	for(i = 0; i < CONSUMERS; i++)
 	{
-		printf("%d. Cons ForLoop\n", i);
 		pthread_create(&cid[i], &attr, consumer, NULL);
 	}
 
+	/* wait for the producer threads */
 	for(i = 0; i < PRODUCERS; i++)
 	{
 		pthread_join(pid[i], NULL);
 	}
 	
+	/* wait for the consumer threads */
 	for(i = 0; i < CONSUMERS; i++)
 	{
 		pthread_join(cid[i], NULL);
@@ -91,12 +94,15 @@ int main(int argc, char *argv[])
 
 void *producer(void *param)
 {
-	printf("Producer\n");
 	int i, iter;
 	iter = (int *)param;
 	
 	for(i = 0; i < iter; i++)
 	{
+		if(p == PRODUCTS_IN_TOTAL)
+		{
+			break;
+		}
 		Node *n = node_new_str("test_object");
 		/* wait till empty is decremented */
 		wait(&prodcons.empty);
@@ -104,19 +110,19 @@ void *producer(void *param)
 		wait(&prodcons.mutex);
 		/* produce product */
 		list_add(prodcons.l, n);
-		prodcons.produced += 1;
-		printf("%d. Produced product %s. Items in buffer %d (out of %d)\n", i, n->elm, prodcons.l->len, BUFFSIZE);
+		p += 1;
+		printf("Produced Item %d. Items in buffer %d (out of %d)\n", p, prodcons.l->len, BUFFSIZE);
+		fflush(stdout);
 		/* release the mutex */		
-		sem_post(&prodcons.mutex);		
+		sem_post(&prodcons.mutex);
 		/* notify waiting consumer threads that a space is filled */	
 		sem_post(&prodcons.full);
-		Sleep(1000);	
+		Sleep(2000);
 	}
 }
 
 void *consumer(void *param)
 {
-	printf("Consumer\n");
 	do	
 	{
 		/* wait till full is incremented */
@@ -124,16 +130,20 @@ void *consumer(void *param)
 		/* wait for mutex */
 		wait(&prodcons.mutex);
 		/* consume */	
-		Node *n;	
+		Node *n = node_new();	
 		n = list_remove(prodcons.l);
-		prodcons.consumed += 1;
-		printf("Consumed Item: %s. Items in buffer %d (out of %d)\n", n->elm, prodcons.l->len, BUFFSIZE); 
+		if(n->elm != NULL)
+		{
+			c += 1;
+			printf("Consumed Item: %d. Items in buffer %d (out of %d)\n", c, prodcons.l->len, BUFFSIZE);
+			fflush(stdout);
+		}
 		/* release the mutex */
 		sem_post(&prodcons.mutex);
 		/* notify waiting producer threads that a space is free */
 		sem_post(&prodcons.empty);
-		Sleep(1000);	
-	} while(prodcons.consumed != PRODUCTS_IN_TOTAL)	;
+		Sleep(2000);
+	} while(c != PRODUCTS_IN_TOTAL)	;
 }
 
 void Sleep(float wait_time_ms)

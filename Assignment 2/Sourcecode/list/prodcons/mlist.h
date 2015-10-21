@@ -1,12 +1,12 @@
 /******************************************************************************
-   list.h 
+   mlist.h 
 
-   Header file with definition of a simple linked list.
+   Header file with definition of a thread safe linked list.
 
 ******************************************************************************/
 
-#ifndef _LIST_H
-#define _LIST_H
+#ifndef _MLIST_H
+#define _MLIST_H
 
 /* structures */
 typedef struct node {
@@ -20,11 +20,20 @@ typedef struct list {
 	Node *last;
 } List;
 
+typedef struct mlist {
+	Node *n;
+	List *l;
+} MList;
+
 /* functions */
 List *list_new(void);            /* return a new list structure */
 void list_add(List *l, Node *n); /* add node n to list l as the last element */
 Node *list_remove(List *l);      /* remove and return the first element from list l*/
 Node *node_new(void);            /* return a new node structure */
 Node *node_new_str(char *s);     /* return a new node structure, where elm points to new copy of string s */
+
+/* thread functions */
+void *mlist_add(void *param);
+void *mlist_remove(void *param);
 
 #endif
