@@ -37,6 +37,13 @@ void list_add(List *l, Node *n)
 Node *list_remove(List *l)
 {
 	Node *n;
+
+	if(l->len == 0)
+	{
+		printf("List is empty\n");
+		return;
+	}
+
 	n = l->first->next;
 
 	if(n->next)
@@ -45,6 +52,12 @@ Node *list_remove(List *l)
 	}
 
 	l->len -= 1;
+
+	if(l->len == 0)
+	{
+		l->first = l->last;
+		l->last->next = NULL;
+	}
 
 	return n;
 }

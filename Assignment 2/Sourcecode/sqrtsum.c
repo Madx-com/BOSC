@@ -20,7 +20,7 @@ void *runner(void *param); /* threads call this function */
 /* Takes 2 arguments, a number N for the summation limit and t as in number of threads */
 int main(int argc, char *argv[])
 {
-	gettimeofday(&tp1, &tpz1);
+	gettimeofday(&tp1, &tpz1); 
 
 	if (atoi(argv[1]) < 0)
 	{

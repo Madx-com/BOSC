@@ -8,24 +8,84 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/time.h>
 #include "list.h"
 
-// FIFO list;
+/* mutex */
+pthread_mutex_t mtx;
+
+/* global variable */
 List *fifo;
+
+/* thread functions */ 
+void *thread_add(void *param);
+void *thread_remove(void *param);
 
 int main(int argc, char* argv[])
 {
-  fifo = list_new();
+	int i;	
+	int NUM_THREADS = 4;
+	
+	pthread_t tid[NUM_THREADS];
+	pthread_attr_t attr;
 
-  list_add(fifo, node_new_str("s1"));
-  list_add(fifo, node_new_str("s2"));
+	fifo = list_new();
 
-  Node *n1 = list_remove(fifo);
-  if (n1 == NULL) { printf("Error no elements in list\n"); exit(-1);}
-  Node *n2 = list_remove(fifo);
-  if (n2 == NULL) { printf("Error no elements in list\n"); exit(-1);}
-  printf("%s\n%s\n", n1->elm, n2->elm);
+	/* Initialize mutex */
+	pthread_mutex_init(&mtx, NULL);
 
-  return 0;
+	/* Initialize and set state for attribute */
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	
+	Node *n[4];
+	n[0] = node_new_str("s1");
+	n[1] = node_new_str("s2");
+	n[2] = node_new_str("s3");
+	n[3] = node_new_str("s4");
+
+	int len = NUM_THREADS / 4;
+	/* create the threads */
+	for(i = 0; i < 4; i++)
+	{
+		pthread_create(&tid[i], &attr, thread_add, n[i]);
+	}
+		
+	for(i = 0; i < 4; i++)
+	{
+		pthread_join(tid[i], NULL);
+	}
+	
+	for(i = 0; i < 6; i++)
+	{
+		pthread_create(&tid[i], &attr, thread_remove, NULL);
+	}
+
+	for(i = 0; i < 6; i++)
+	{
+		pthread_join(tid[i], NULL);
+	}
+
+	return 0;
 }
+
+void *thread_add(void *param)
+{
+	Node *n = (Node *)param;
+	pthread_mutex_lock(&mtx);
+	printf("Adding %s...\n",n->elm);
+	list_add(fifo, n);
+	pthread_mutex_unlock(&mtx);
+}
+
+void *thread_remove(void *param)
+{
+	Node *n;
+	pthread_mutex_lock(&mtx);
+	printf("Removing...\n");
+	n = list_remove(fifo);
+	printf("%s\n",n->elm);
+	pthread_mutex_unlock(&mtx);
+}
+
 
