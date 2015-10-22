@@ -1,14 +1,14 @@
 all: fifo prodcons
 
-OBJS = list.o main.o 
-OBJS2 = prodcons.o list.o
+FIFO = list.o main.o 
+PROCON = prodcons.o list.o
 LIBS = -pthread
 
-fifo: main.o ${OBJS}
-	gcc -o $@  ${LIBS} ${OBJS}
+fifo: main.o ${FIFO}
+	gcc -o $@ ${LIBS} ${FIFO}
 
-prodcons: prodcons.o ${OBJS2}
-	gcc -o $@ ${LIBS} ${OBJS2}
+prodcons: prodcons.o ${PROCON}
+	gcc -o $@ ${LIBS} ${PROCON}
 
 clean:
 	rm -rf *o fifo prodcons

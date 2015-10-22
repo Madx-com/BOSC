@@ -1,8 +1,10 @@
 all: sqrtsum
+	cd list; make
+	cd banker; make
+
+LIBS = -pthread
 
 sqrtsum: sqrtsum.o
-	gcc -pthread -o sqrtsum sqrtsum.o -lm
+	gcc -o $@ ${LIBS} sqrtsum.o -lm
 
-sqrtsum.o: sqrtsum.c
-	gcc -c sqrtsum.c
 

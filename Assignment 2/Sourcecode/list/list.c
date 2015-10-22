@@ -31,7 +31,9 @@ List *list_new(void)
 /* list_add: add node n to list l as the last element */
 void list_add(List *l, Node *n)
 {
+	// lock mutex in list
 	pthread_mutex_lock(l->mtx);
+	// check if it's the root
 	if(l->len == 0)
 	{
 		l->first->next = n;
@@ -43,6 +45,7 @@ void list_add(List *l, Node *n)
 		l->last = n;
 	}
 	l->len += 1;
+	// unlock mutex in list
 	pthread_mutex_unlock(l->mtx);
 }
 
@@ -50,14 +53,16 @@ void list_add(List *l, Node *n)
 Node *list_remove(List *l)
 {
 	Node *n;	
-
+	// lock mutex in list
 	pthread_mutex_lock(l->mtx);
+	// check if there are (non-root) nodes
 	if(l->len > 0)
 	{
 		n = l->first->next; 
 		l->first->next = n->next;
 		l->len -= 1;
 	}
+	// unlock mutex in list
 	pthread_mutex_unlock(l->mtx);
 	return n;
 }

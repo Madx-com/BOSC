@@ -13,27 +13,37 @@ typedef struct pc {
 	sem_t mutex;
 } PC;
 
+// product and consume counters
 int p;
 int c;
 
 PC prodcons;
 
+// arguments
 int PRODUCERS;
 int CONSUMERS;
 int BUFFSIZE;
 int PRODUCTS_IN_TOTAL;
 
+// functions
 void *producer(void *param);
 void *consumer(void *param);
 void Sleep(float wait_time_ms);
 
-struct timeval tv;
-
+/* Producer-Consumer program */
 int main(int argc, char *argv[])
 {
+	if(argc != 5)
+	{
+		printf("Not a valid amount of arguments. Arguments: PRODUCERS CONSUMERS BUFFERSIZE TOTAL_PRODUCTS\n");
+	}
+
+	// seed random number sequence
+	struct timeval tv;
 	gettimeofday(&tv, NULL);
 	srand(tv.tv_usec);
-	
+
+	// set arguments
 	PRODUCERS = atoi(argv[1]);
 	CONSUMERS = atoi(argv[2]);
 	BUFFSIZE = atoi(argv[3]);
@@ -42,6 +52,7 @@ int main(int argc, char *argv[])
 	int i;
 	pthread_attr_t attr;
 
+	// Initialize semaphores
 	sem_init(&prodcons.full, 0, 0);
 	sem_init(&prodcons.empty, 0, BUFFSIZE);
 	sem_init(&prodcons.mutex, 0, 1);
@@ -49,42 +60,52 @@ int main(int argc, char *argv[])
 	p = 0;
 	c = 0;
 
+	// create list
 	prodcons.l = list_new();
 
-	/* producer id's */
+	// producer id's
 	pthread_t pid[PRODUCERS];
 
-	/* consumer id's */
+	// consumer id's
 	pthread_t cid[CONSUMERS];
 
-	/* Initialize thread attributes */
+	// Initialize thread attributes
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	/* create the producers */
+	// create the producers
 	for(i = 0; i < PRODUCERS; i++)
 	{	
 		pthread_create(&pid[i], &attr, producer, (void *)i);
 	}
 	
-	/* create the consumers */
+	// create the consumers
 	for(i = 0; i < CONSUMERS; i++)
 	{
 		pthread_create(&cid[i], &attr, consumer, (void *)i);
 	}
 
-	/* wait for the producer threads */
+	// destroy attribute
+	pthread_attr_destroy(&attr);
+
+	// wait for the producer threads
 	for(i = 0; i < PRODUCERS; i++)
 	{
 		pthread_join(pid[i], NULL);
 	}
 	
-	/* wait for the consumer threads */
+	// wait for the consumer threads
 	for(i = 0; i < CONSUMERS; i++)
 	{
 		pthread_join(cid[i], NULL);
 	}
 
+	// destroy semaphores
+	sem_destroy(&prodcons.empty);
+	sem_destroy(&prodcons.full);
+	sem_destroy(&prodcons.mutex);
+
+	// check if it all worked
 	if(c == p)
 	{
 		printf("Success! All products produced and consumed.\n");
@@ -97,6 +118,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
+/* Producer thread function */
 void *producer(void *param)
 {
 	int id = (int *)param;
@@ -104,26 +126,27 @@ void *producer(void *param)
 
 	while(p < PRODUCTS_IN_TOTAL)
 	{
-		/* wait till empty is decremented */
+		// wait till empty is decremented
 		sem_wait(&prodcons.empty);
-		/* wait for mutex */
+		// wait for mutex
 		sem_wait(&prodcons.mutex);
-		/* produce product */
+		// produce product
 		char str[10];
 		sprintf(str, "P%d", (p+1));
 		n = node_new_str(str);
 		list_add(prodcons.l, n);
 		p += 1;
-		/* release the mutex */		
+		// release the mutex
 		sem_post(&prodcons.mutex);
-		/* notify waiting consumer threads that a space is filled */	
+		// notify waiting consumer threads that a space is filled
 		sem_post(&prodcons.full);
 		printf("%d. Produced Item %d: %s. Items in buffer %d (out of %d)\n", id, p, (char *)n->elm, prodcons.l->len, BUFFSIZE);
-		fflush(stdout);		
+		fflush(stdout);
 		Sleep(2000);
 	}
 }
 
+/* Consumer thread function */
 void *consumer(void *param)
 {
 	int id = (int *)param;
@@ -131,23 +154,24 @@ void *consumer(void *param)
 
 	while(c < PRODUCTS_IN_TOTAL)		
 	{
-		/* wait till full is incremented */
+		// wait till full is incremented
 		sem_wait(&prodcons.full);
-		/* wait for mutex */
+		// wait for mutex
 		sem_wait(&prodcons.mutex);
-		/* consume */		
+		// consume		
 		n = list_remove(prodcons.l);
 		c += 1;
-		/* release the mutex */
+		// release the mutex
 		sem_post(&prodcons.mutex);
-		/* notify waiting producer threads that a space is free */
+		// notify waiting producer threads that a space is free 
 		sem_post(&prodcons.empty);
 		printf("%d. Consumed Item %d: %s. Items in buffer %d (out of %d)\n", id, c, (char *)n->elm, prodcons.l->len, BUFFSIZE);
-		fflush(stdout);		
+		fflush(stdout);
 		Sleep(2000);
 	}
 }
 
+/* Random sleep function */
 void Sleep(float wait_time_ms)
 {
 	wait_time_ms = ((float)rand()) * wait_time_ms / (float)RAND_MAX;

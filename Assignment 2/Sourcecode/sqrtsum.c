@@ -9,13 +9,18 @@ typedef struct
 	double sum;
 } SQRTSUM;
 
-SQRTSUM sqrtsum; /* globally shared struct */
-pthread_mutex_t mutex_sqrtsum; /* PThread mutex variable */
+// globally shared struct
+SQRTSUM sqrtsum; 
 
+// PThread mutex variable
+pthread_mutex_t mutex_sqrtsum; 
+
+// structs to determine time
 struct timeval tp1, tp2;
 struct timezone tpz1, tpz2;
 
-void *runner(void *param); /* threads call this function */
+// threads call this function
+void *runner(void *param);
 
 /* Takes 2 arguments, a number N for the summation limit and t as in number of threads */
 int main(int argc, char *argv[])
@@ -29,35 +34,46 @@ int main(int argc, char *argv[])
 	}
 
 	int i, NUM_THREADS = atoi(argv[2]);
-	pthread_t tid[NUM_THREADS]; /* the thread identifiers */
-	pthread_attr_t attr; /* set of thread attributes */
-
+	// the thread id array
+	pthread_t tid[NUM_THREADS];
+	// set of thread attributes
+	pthread_attr_t attr;
+	// assumption: argv[1] % NUM_THREADS = 0
 	int n = atoi(argv[1])/NUM_THREADS;
 	sqrtsum.n = n;
 
 	pthread_mutex_init(&mutex_sqrtsum, NULL);
 
-	/* get the default attributes */
+	// get the default attributes 
 	pthread_attr_init(&attr);
-	/* set the attribute as joinable, so the threads can join with the main thread */
+	// set the attribute as joinable, so the threads can join with the main thread
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	/* create the threads */
+	// create the threads
 	for (i = 0; i < NUM_THREADS; i++)
 	{
 		pthread_create(&tid[i], &attr, runner, (void *)i);
 	}
-	/* wait for the thread to exit */
+
+	// destroy attribute
+	pthread_attr_destroy(&attr);
+
+	// wait for the thread to exit
 	for (i=0; i < NUM_THREADS; i++)
 	{
 		pthread_join(tid[i],NULL);
 	}
 	printf("sqrtsum = %f\n", sqrtsum.sum);
 
+	// destroy mutex
+	pthread_mutex_destroy(&mutex_sqrtsum);
+
 	gettimeofday(&tp2, &tpz2);
 
+	// calculate program time
 	int time = (tp2.tv_sec - tp1.tv_sec) * 1000 + (tp2.tv_usec - tp1.tv_usec) / 1000;
 	printf("Total time(ms): %d\n", time);
+	time;
 	return 0;
 }
 
@@ -66,13 +82,17 @@ void *runner(void *param)
 {
 	int i, n, start, tid, upper;
 
-	double lsqrtsum = 0.0; /* local sum variable */
-	n = sqrtsum.n; /* short summation limit */
-	tid = (int)param; /* thread id */
-
-	start = n * tid + 1; /* start value for loop */
+	// local sum variable
+	double lsqrtsum = 0.0;
+	// short summation limit	
+	n = sqrtsum.n;
+	// thread id
+	tid = (int *)param;
+	// start value for loop
+	start = n * tid + 1;
 	printf("Thread %d: Start value: %d\n", tid, start);
-	upper = start + n; /* upper value for loop */
+	// upper value for loop
+	upper = start + n;
 	printf("Thread %d: Upper value: %d\n", tid, upper);
 
 	for (i = start; i < upper ; i++)
@@ -82,9 +102,12 @@ void *runner(void *param)
 
 	printf("Thread %d: Local sqrtsum: %f\n", tid, lsqrtsum);
 
-	pthread_mutex_lock(&mutex_sqrtsum);	/* lock mutex */
-	sqrtsum.sum += lsqrtsum; /* update global struct variable */
-	pthread_mutex_unlock(&mutex_sqrtsum); /* unlock mutex */
-
-	pthread_exit(0); /* exit pthread */
+	// lock mutex
+	pthread_mutex_lock(&mutex_sqrtsum);
+	// update global struct variable
+	sqrtsum.sum += lsqrtsum;
+	// unlock mutex
+	pthread_mutex_unlock(&mutex_sqrtsum);
+	// exit pthread
+	pthread_exit(0);
 }
