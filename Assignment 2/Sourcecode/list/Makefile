@@ -1,14 +1,14 @@
-all: fifo mutexfifo
+all: fifo prodcons
 
-OBJS = mlist.o mutexlist.o
-OBJS2 = list.o main.o
+OBJS = list.o main.o 
+OBJS2 = prodcons.o list.o
 LIBS = -pthread
 
-fifo: main.o ${OBJS2}
-	gcc -o $@  ${LIBS} ${OBJS2}
+fifo: main.o ${OBJS}
+	gcc -o $@  ${LIBS} ${OBJS}
 
-mutexfifo: mutexlist.o ${OBJS}
-	gcc -o $@ ${LIBS} ${OBJS}
+prodcons: prodcons.o ${OBJS2}
+	gcc -o $@ ${LIBS} ${OBJS2}
 
 clean:
-	rm -rf *o fifo
+	rm -rf *o fifo prodcons
