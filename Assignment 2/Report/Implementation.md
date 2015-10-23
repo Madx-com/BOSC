@@ -1,5 +1,7 @@
 # Implementation
 
+I dette afsnit er der beskrevet de tanker vi har gjort os omkring vores implementation af de fire opgaver. Bemærk at der ikke bliver beskrevet meget om testing, da det er i afsnittet Testing. 
+
 ## Sum(Sqrt)
 Vi tager udgangspunkt i bogens implementation af et sum program, der benytter en tråd til at beregne summen fra 0 til et givent tal.
 Programmet er ret simpel siden den kun benytter en tråd, men det viser hvordan en tråd starter med `pthread` til at udføre en given funktion.
@@ -110,10 +112,82 @@ Forrige sektion afklarede at det kun var nødvendigt at tilføje en låsemekanis
 Dette har vi gjort ved brug af `pthread_mutex_lock(l->mtx)` og `pthread_mutex_unlock(l->mtx)`.
 
 
-## Producer-Consumer
+## Producer-Consumer problemet
+Producer-Consumer problemet er et velkendt problem, hvor producenter producerer varer, som consumers konsumerer. Problemet ligger i at stoppe consumers med at konsumerer vare når der ikke er flere varer og ligeledes at stoppe producenter med at producerer varer når lageret er fyldt.
+Dette kan gøres ved brug af semaphores, da den netop har den funktionalitet der efterspørges i form af funktionerne `sem_wait()` og `sem_post()`.
+I programmet har vi implementeret en `struct PC`, der indeholder vores linked list, der fungerer som lager, og tre semaphores, `full` til at indikerer at der er vare i lageret, `empty` en til at indikerer at der er plads i lageret og `mutex` en der agerer som en mutex.
 
+Programmet skal tage følgende fire input:
 
-## Banker's Algorithm
+* Antallet af producers, `PRODUCERS`
+* Antallet af consumers, `CONSUMERS`
+* Størrelsen på lageret, `BUFFSIZE`
+* Antallet af vare der skal produceres i alt, `PRODUCTS_IN_TOTAL`
 
+Vi initialiserer vores semaphores således at `full` sættes til 0 og `empty` sættes til lagerets størrelse. 
+
+~~~c
+sem_init(&prodcons.full, 0, 0);
+sem_init(&prodcons.empty, 0, BUFFSIZE);
+sem_init(&prodcons.mutex, 0, 1);
+
+~~~
+
+Dette gøres grundet logikken i `sem_wait()` der formindsker værdien og `sem_post()` der forhøjer værdien. Dermed sætter vi producers til at holde øje med `empty` og sende et signal til `full` med post, og omvendt med consumers.
+
+~~~c
+void *producer(void *param)
+{
+	.
+	sem_wait(&empty);
+	.
+	sem_post(&full);	
+	.
+}
+
+void *consumer(void *param)
+{
+	.
+	sem_wait(&full);
+	.
+	sem_post(&empty);	
+	.
+}
+~~~
+
+For at holde styr på hvor mange produkter der produceres og konsumeres har vi to counters `p` og `c`, der bliver tjekket op med produkter i alt i deres respektive funktioners while løkker. Mutex semaphoren anvendes til at opdatere counters.
+
+## Banker's Algoritme
+Til vores implementation af Banker's algoritme er vi blevet tildelt en fil med den grundliggende implementation af algoritmens struktur.
+I den givet implementation er der en `struct State` som består af de elementer Banker's algoritme kræver forklaret i Teori afsnittet.
+Det første der manglede at blive implementeret i filen var allokeringen af hukommelse til `State`. Til dette anvender vi `malloc()` og `sizeof()` funktionerne.
+Med disse funktioner kan vi beregne det antal bytes i hukommelsen vi kommer til at anvende. Der hvor dette kan være problematisk er når der skal allokeres hukommelse til arrays og 2D-arrays. I et array skal man huske at allokere hukommelse i forhold til dens længde, så derfor ganges dette med `sizeof()` af typen.
+For 2D-arrays kræver det to skridt, hvor i det første skridt tildeles hukommelse af det andet array og i det andet skridt ved brug af en loop allokeres hukommelse til det første array.
+
+~~~c
+s = (State *)malloc(sizeof(State));
+s->resource = (int *)malloc(sizeof(int) * n);
+s->available = (int *)malloc(sizeof(int) * n);
+s->max = (int **)malloc(sizeof(int *) * n);
+s->allocation = (int **)malloc(sizeof(int *) * n);
+s->need = (int **)malloc(sizeof(int *) * n);
+
+for(i = 0; i < m; i++)
+{
+	s->max[i] = (int *)malloc(sizeof(int) * m);
+	s->allocation[i] = (int *)malloc(sizeof(int) * m);
+	s->need[i] = (int *)malloc(sizeof(int) * m);
+}
+~~~
+
+Det næste handlede om at tjekke om programmet var i en safe state eller en unsafe state.
+For at gøre dette lavede vi en metode `checksafety()`, der kopiere det kritiske indhold af staten og simulerer eksekvering af alle processerne. 
+Hvis dette lykkedes er vi i en safe state, ellers er vi ikke og skal stoppe programmet.
+
+Når dette er gjort laver programmet nogle forespørgsler på ressurser, som vi håndterer i `resource_request()`.
+I denne metode har vi fulgt teorien, med hensyn til at tjekke forespørgslen er inden for `need`, hvilket er et ekstra tjek eftersom når forespørgslen er beregnet ud fra `need` i `generate_request()`, men i tilfælde af at en bruger indtaster en forespørgsel er dette tjek godt at have.
+Derudover ser vi på om `available` ikke bliver overskredet af forespørgslen. Dette tjek er muligvis ikke nødvendigt, da en mulig simulation kan frigive nok ressourser på et andet tidspunkt. Til sidst hvis alt er gået godt, tildeler vi ressurserne, men vælger lave en kopi af de nuværende `available`, `need` og `allocation`. Dette gøres fordi vi efter tildelingen anvender `checksafety()` til at finde ud af om det er i orden, hvis ikke går vi tilbage til de tidligere værdier.
+
+Til sidst implementeret vi funktionen `resource_release()`, der skal frigive ressurser fra en proces. Ligesom en bank tager vi imod det og opdatere `available`, `need` og `allocation`.
 
 \newpage
