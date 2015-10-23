@@ -32,61 +32,64 @@ void Sleep(float wait_time_ms)
    results in a safe state and return 1, else return 0 */
 int resource_request(int i, int *request)
 {
-	int j, gg = 1;
+	int j, res = 1, avail;
 	pthread_mutex_lock(&state_mutex);
 	for(j = 0; j < n; j++)
 	{
-		// check that request is not greater than need
 		if((s->max[i][j] - s->allocation[i][j]) < request[j])
 		{
+			// need is less than request
 			printf("Unsafe! Maximum(%d) - Curr.Allocated(%d) < Request(%d)\n", s->max[i][j], s->allocation[i][j], request[j]);
-			gg = 0;
-			return gg;
+			res = 0;
+			pthread_mutex_unlock(&state_mutex);
+			return res;
 		}
-		// check if the requested resource is available
-		if(request[j] > s->available[j])
+
+		avail = s->resource[j] - (s->allocation[i][j] + request[i]);
+		if(avail > s->available[j])
 		{
+			// not enough available resources
 			printf("Unsafe! Request(%d) > Available(%d)\n", request[j], s->available[j]);
-			gg = 0;
-			return gg;
+			res = 0;
+			pthread_mutex_unlock(&state_mutex);
+			return res;
 		}
 	}
 	
-	if(gg == 1)
+	if(res == 1)
 	{
+		int safe = 0;
 		// request granted for now
-		int alloc[n], available[n];
+		int alloc[n], available[n], need[n];
 		for(j = 0; j < n; j++)
 		{
 			alloc[j] = s->allocation[i][j];
-			available[j] = s->available[j]; 
+			available[j] = s->available[j];
+			need[j] = s->need[i][j]; 
 			s->allocation[i][j] += request[j];
-			if((s->available[i] = s->max[i][j] - s->allocation[i][j]) < 0)
-			{
-				s->available[i] = 0;
-			}
+			s->need[i][j] = s->max[i][j] - s->allocation[i][j];
+			available[j] = s->resource[j] - s->allocation[i][j];
 		}
-
-		// check safety in current state
-		gg = checksafety();
-		if(!gg)
+		if((checksafety()) == 1)
 		{
-			// revert
-			printf("Reverting... \n");
+			printf("Resources allocated safely!\n");
+			printstate();
+			pthread_mutex_unlock(&state_mutex);
+			return 1;
+		}
+		else
+		{
+			printf("Resources allocated unsafely! Reverting allocation...\n");
 			for(j = 0; j < n; j++)
 			{
 				s->allocation[i][j] = alloc[j];
-				s->available[i] = s->max[i][j] - s->allocation[i][j];
+				s->available[j] = available[j];
+				s->need[i][j] = need[j]; 
 			}
+			printstate();
+			pthread_mutex_unlock(&state_mutex);
+			return 0;
 		}
-		printstate();
-		pthread_mutex_unlock(&state_mutex);
-		return 1;
-	}
-	else
-	{
-		pthread_mutex_unlock(&state_mutex);
-		return gg;
 	}
 }
 
@@ -102,6 +105,10 @@ void resource_release(int i, int *request)
 		{
 			s->allocation[i][j] = 0;
 		}
+		if((s->need[i][j] = s->max[i][j] - s->allocation[i][j]) < 0)
+		{
+			s->need[i][j] = 0;
+		}
 		// recalculate available
 		for(k = 0; k < m; k++)
 		{
@@ -110,7 +117,6 @@ void resource_release(int i, int *request)
 		s->available[j] = s->resource[j] - availablesum;		
 	}
 	printstate();
-	checksafety();
 	pthread_mutex_unlock(&state_mutex);
 }
 
@@ -120,7 +126,6 @@ void generate_request(int i, int *request)
 	int j, sum = 1;
 	while (!sum) 
 	{
-		printf("Request:\n");
 		for (j = 0;j < n; j++) 
 		{
 			request[j] = s->need[i][j] * ((double)rand())/ (double)RAND_MAX;
@@ -171,36 +176,65 @@ void *process_thread(void *param)
 	free(request);
 }
 
+/* simulates the current states to check the safety of all processes */
 int checksafety()
 {
-	int i, j, alloc, available[n], need;
-	for(i = 0; i < m; i++)
+	int c = m, executing[m], i, j, issafe, avail[n], alloc[m][n], need[m][n], availablesum, needs = 1;
+	// copy variables
+	for(j = 0; j < n; j++)
 	{
-		alloc = 0;
-		need = 0;
-		for(j = 0; j < n; j++)
+		availablesum = 0;
+		for(i = 0; i < m; i++)
 		{
-			need = s->max[i][j] - s->allocation[i][j];
-			// check need
-			if(need != s->need[i][j])
-			{
-				printf("Unsafe! Maximum(%d) - Curr.Allocated(%d) != Need(%d)\n", s->max[i][j], s->allocation[i][j], s->need[i][j]);
-				return 0;
-			}
-
-			alloc = s->allocation[i][j];
-			available[j] = s->resource[j] - alloc;
-
-			// check if available is correct
-			if(available[j] != s->available[j])
-			{
-				printf("Unsafe! Calculated Available(%d) != State Available(%d)\n",  available[j], s->available[j]);
-				return 0;
-			}
+			executing[i] = 1;
+			need[i][j] = s->max[i][j] - s->allocation[i][j];
+			alloc[i][j] = s->allocation[i][j];
+			availablesum += alloc[i][j];
 		}
-
+		avail[j] = s->resource[j] - availablesum;
 	}
-	return 1;
+
+	for (i = 0; i < m; i++) 
+	{
+		issafe = 0;
+        if (executing[i]) 
+		{
+            for (j = 0; j < n; j++) 
+			{
+				// check if need exceeds available
+                if (need[i][j] > avail[j]) 
+				{
+                    needs = 0;
+                    break;
+				}
+			}
+            if (needs) 
+			{
+				// simulate execution
+                executing[i] = 0;
+                c -= 1;
+
+				// it can execute so it's safe
+                issafe = 1;
+
+                for (j = 0; j < n; j++) {
+                    avail[j] += alloc[i][j];
+                }
+
+                break;
+            }
+        }
+    }
+    if (!issafe) 
+	{
+        printf("Unsafe state found.\n");
+        return 0;
+    }
+	else
+	{
+		printf("Everything is good!\n");
+		return 1;
+	}
 }
 
 void printstate()
@@ -241,9 +275,9 @@ int main(int argc, char* argv[])
 
 	for(i = 0; i < m; i++)
 	{
-		s->max[i] = (int *)malloc(sizeof(int) * n);
-		s->allocation[i] = (int *)malloc(sizeof(int) * n);
-		s->need[i] = (int *)malloc(sizeof(int) * n);
+		s->max[i] = (int *)malloc(sizeof(int) * m);
+		s->allocation[i] = (int *)malloc(sizeof(int) * m);
+		s->need[i] = (int *)malloc(sizeof(int) * m);
 	}
 
 	/* Get current state as input */
