@@ -58,18 +58,21 @@ int resource_request(int i, int *request)
 	
 	if(res == 1)
 	{
-		int safe = 0;
 		// request granted for now
+		int safe = 0;
 		int alloc[n], available[n], need[n];
 		for(j = 0; j < n; j++)
 		{
+			// copy current values
 			alloc[j] = s->allocation[i][j];
 			available[j] = s->available[j];
-			need[j] = s->need[i][j]; 
+			need[j] = s->need[i][j];
+			// assign new values 
 			s->allocation[i][j] += request[j];
 			s->need[i][j] = s->max[i][j] - s->allocation[i][j];
 			available[j] = s->resource[j] - s->allocation[i][j];
 		}
+		// simulate to check safety of processes
 		if((checksafety()) == 1)
 		{
 			printf("Resources allocated safely!\n");
@@ -194,6 +197,7 @@ int checksafety()
 		avail[j] = s->resource[j] - availablesum;
 	}
 
+	// run simulation
 	for (i = 0; i < m; i++) 
 	{
 		issafe = 0;
@@ -225,6 +229,7 @@ int checksafety()
             }
         }
     }
+	// check safety
     if (!issafe) 
 	{
         printf("Unsafe state found.\n");
