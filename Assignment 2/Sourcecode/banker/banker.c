@@ -46,7 +46,7 @@ int resource_request(int i, int *request)
 		// check if the requested resource is available
 		if(request[j] > s->available[j])
 		{
-			printf("Unsafe! Request(%d) < Available(%d)\n", request[j], s->available[j]);
+			printf("Unsafe! Request(%d) > Available(%d)\n", request[j], s->available[j]);
 			gg = 0;
 			return gg;
 		}
@@ -54,17 +54,34 @@ int resource_request(int i, int *request)
 	
 	if(gg == 1)
 	{
+		// request granted for now
+		int alloc[n], available[n];
 		for(j = 0; j < n; j++)
 		{
+			alloc[j] = s->allocation[i][j];
+			available[j] = s->available[j]; 
 			s->allocation[i][j] += request[j];
-			if((s->available[j] = s->max[i][j] - s->allocation[i][j]) < 0)
+			if((s->available[i] = s->max[i][j] - s->allocation[i][j]) < 0)
 			{
-				s->available[j] = 0;
+				s->available[i] = 0;
 			}
-			printstate();
 		}
+
+		// check safety in current state
+		gg = checksafety();
+		if(!gg)
+		{
+			// revert
+			printf("Reverting... \n");
+			for(j = 0; j < n; j++)
+			{
+				s->allocation[i][j] = alloc[j];
+				s->available[i] = s->max[i][j] - s->allocation[i][j];
+			}
+		}
+		printstate();
 		pthread_mutex_unlock(&state_mutex);
-		return gg;
+		return 1;
 	}
 	else
 	{
@@ -92,8 +109,9 @@ void resource_release(int i, int *request)
 		}
 		s->available[j] = s->resource[j] - availablesum;		
 	}
-	pthread_mutex_unlock(&state_mutex);
 	printstate();
+	checksafety();
+	pthread_mutex_unlock(&state_mutex);
 }
 
 /* Generate a request vector */
@@ -166,20 +184,21 @@ int checksafety()
 			// check need
 			if(need != s->need[i][j])
 			{
-				printf("Initial -> Unsafe! Maximum(%d) - Curr.Allocated(%d) != Need(%d)\n", s->max[i][j], s->allocation[i][j], s->need[i][j]);
+				printf("Unsafe! Maximum(%d) - Curr.Allocated(%d) != Need(%d)\n", s->max[i][j], s->allocation[i][j], s->need[i][j]);
 				return 0;
 			}
 
-			alloc += s->allocation[i][j];	
+			alloc = s->allocation[i][j];
 			available[j] = s->resource[j] - alloc;
-					
+
 			// check if available is correct
 			if(available[j] != s->available[j])
 			{
-				printf("Initial -> Unsafe! Calculated Available(%d) != State Available(%d)\n",  available[j], s->available[j]);
+				printf("Unsafe! Calculated Available(%d) != State Available(%d)\n",  available[j], s->available[j]);
 				return 0;
 			}
 		}
+
 	}
 	return 1;
 }

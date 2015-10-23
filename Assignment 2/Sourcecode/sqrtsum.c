@@ -90,17 +90,15 @@ void *runner(void *param)
 	tid = (int *)param;
 	// start value for loop
 	start = n * tid + 1;
-	printf("Thread %d: Start value: %d\n", tid, start);
 	// upper value for loop
 	upper = start + n;
-	printf("Thread %d: Upper value: %d\n", tid, upper);
-
+	
 	for (i = start; i < upper ; i++)
 	{
 		lsqrtsum += sqrt(i);
 	}
 
-	printf("Thread %d: Local sqrtsum: %f\n", tid, lsqrtsum);
+	//printf("Thread %d: Local sqrtsum: %f\n", tid, lsqrtsum);
 
 	// lock mutex
 	pthread_mutex_lock(&mutex_sqrtsum);
