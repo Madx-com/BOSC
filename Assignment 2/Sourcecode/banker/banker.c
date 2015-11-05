@@ -76,8 +76,8 @@ int resource_request(int i, int *request)
 		safeAllocation[i][j] = s->allocation[i][j];
 	
 		s->available[j] = s->available[j] - request[j];
-		s->allocation[i][j] = s->allocation[i][j] - request[j];
-		s->need[i][j] = s->need[i][j] - request[j];
+		s->allocation[i][j] = s->allocation[i][j] + request[j];
+		s->need[i][j] = s->max[i][j] - s->allocation[i][j];
 	}
 
 	//check state
@@ -97,6 +97,7 @@ int resource_request(int i, int *request)
 	else
 	{
 		printf("Request leads to safe state. Request Granted!\n");
+		printf("Vector changed: ");
 		printstate();					
 		pthread_mutex_unlock(&state_mutex);
 		return 1;
@@ -113,10 +114,11 @@ void resource_release(int i, int *request)
 	{
 		printf("%d ", request[j]);
 	}
-
 	printf("\n");
+
 	for(j = 0; j < n; j++)
 	{
+		// check if release request is less than the allocated resources
 		if(request[j] <= s->allocation[i][j])
 		{
 			continue;
@@ -131,6 +133,7 @@ void resource_release(int i, int *request)
 
 	for(j = 0; j < n; j++)
 	{
+		// release the resources
 		s->allocation[i][j] = s->allocation[i][j] - request[j];
 		s->need[i][j] = s->max[i][j] - s->allocation[i][j];
 		s->available[j] = s->available[j] + request[j];
@@ -168,8 +171,10 @@ void generate_release(int i, int *request)
 
 int checksafety()
 {
-	printstate();
-	int i, j, work[n], finish[m], need = 0, avail = 0;
+	int i, j, work[n], finish[m];
+
+	// sum variables
+	int need = 0, avail = 0;
 
 	for(i = 0; i < m; i++)
 	{
@@ -223,6 +228,26 @@ void printstate()
 		printf("%d  ",s->available[j]);
 	}
 	printf("\n");
+
+	printf("Allocaton Matrix:\n");
+	for(i = 0; i < m; i++)
+	{
+		for(j = 0; j < n; j++)
+		{
+			printf("%d ", s->allocation[i][j]);
+		}
+		printf("\n");
+	}
+
+	printf("Need Matrix:\n");
+	for(i = 0; i < m; i++)
+	{
+		for(j = 0; j < n; j++)
+		{
+			printf("%d ", s->need[i][j]);
+		}
+		printf("\n");
+	}
 }
 
 /* Threads starts here */
@@ -237,7 +262,7 @@ void *process_thread(void *param)
     generate_request(i, request);
     while (!resource_request(i, request)) {
       /* Wait */
-      Sleep(1000);
+      Sleep(100);
     }
     /* Generate release */
     generate_release(i, request);
