@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 	// create the threads
 	for (i = 0; i < NUM_THREADS; i++)
 	{
-		pthread_create(&tid[i], &attr, runner, (void *)i);
+		pthread_create(&tid[i], &attr, runner, (void *) (long) i);
 	}
 
 	// destroy attribute
@@ -87,7 +87,7 @@ void *runner(void *param)
 	// short summation limit	
 	n = sqrtsum.n;
 	// thread id
-	tid = (int *)param;
+	tid = (int) (long) param;
 	// start value for loop
 	start = n * tid + 1;
 	// upper value for loop
