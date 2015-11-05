@@ -64,4 +64,4 @@ Banker's algoritme er testet med de to inputfiler der er blevet givet. Ved input
 
 Vi kan ikke se om programmet virker korrekt, andet end at vi kan delvis bekræfte `checksafety()` funktionen da den stopper input2.txt filen.
 
-\newpage
+

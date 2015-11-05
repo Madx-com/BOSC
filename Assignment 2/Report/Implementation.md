@@ -190,4 +190,3 @@ Derudover ser vi på om `available` ikke bliver overskredet af forespørgslen. D
 
 Til sidst implementeret vi funktionen `resource_release()`, der skal frigive ressurser fra en proces. Ligesom en bank tager vi imod det og opdatere `available`, `need` og `allocation`.
 
-\newpage
