@@ -29,17 +29,20 @@ Hvis begge nu skulle lave en ${write(x, 34)}$ og ${write(x,1000)}$, hvilken skul
 
 Besvarelsen af det spørgsmål afgør om hvorvidt den næste process der laver en ${read(x)}$ ender med et resultat der er brugbart eller ej. For at undgå dette skal man sørge for at ens transaktioner er seriel ækvivalens. Dette kan gøres på mange forskellige måder. En af dem er som mutex, hvor man låser den sektion der er data sensitiv af, indtil man er sikker på at ændringerne har taget efekt. Dette gør at man ikke får dirty reads. Det er dog ikke nok til at kalde det en seriel ækvivalent transaktion. For at de kan være det så kræver det, at dataen ser ud som den ville hvis en transaktion havde kørt den isoleret.
 
-## Bankers Algorithm
-Banker's algoritme er en resource alokerings algoritme som bruges til hovedsageligt til at undgå deadlock situationer. 
+## Banker's Algoritme
+Banker's algoritme er en ressource alokerings algoritme som bruges til hovedsageligt til at undgå deadlock situationer. 
 
-Algoritmen benytter matriser til at allokere ressoourcer til processer og holder styr på hvor mange ressourcer af typen R, en process har fået. Den benytter to vektorer, ${available}$ med længen m som angiver den maksimale mængde ressourcer af en given type R der er tilgængelig, og ${resource}$ der angiver de maksimalt tilgængelige ressourcer af en type R.
+Algoritmen benytter matriser til at allokere ressourcer, ${R}$, til processer, ${P}$ og holde styr på hvor mange ressourcer af en ressource type en process har. Den benytter to vektorer, ${available}$ med længen ${n}$ som angiver mængden ressourcer af en given type ${R}$ der er tilgængelige på et givent tidspunkt, og en vektor ${ressource}$ der angiver de maksimalt tilgængelige ressourcer af en type ${R}$.
 
-I algoritmen er der 3 matriser i alt, med størrelsen ${n \times m}$, hvor n er antallet af processer og m er antallet af ressourse typer R. ${max[n \times m]}$ er en matrise som holder styr på hvor mange resourser R en process kan modtage. ${need[n \times m]}$ er en matrise som angiver algoritmen, hvor mange resourcer en given process mangler for de specifikke typer R. ${allocated[n \times m]}$ er en matrise som håndtere allokeringen af ressourcer på processerne på et givent tidspunkt. 
+I algoritmen er der 3 matriser i alt, med størrelsen ${m \times n}$, hvor ${m}$ er antallet af processer og ${n}$ er antallet af resourse typer ${R}$. ${max[m \times n]}$ er en matrise som holder styr på hvor mange resourser en process kan modtage. ${need[m \times n]}$ er en matrise som angiver hvor mange ressourcer en given process mangler for de specifikke ressourcetyper ${R}$. ${allocated[m \times n]}$ er en matrise som håndtere allokeringen af ressourcer på processerne på et givent tidspunkt. Matrisen ${need}$ er beregnet ud fra ${max - allocated}$.
 
-Safe state og unsafe state er to stadier som er kernen i denne algoritme. Det er dette der afgør om der er nok resourcer til en proces kan udføre sit arbejde og afslutte, uden at de andre processer kommer til at deadlock. En safe state er når en process kan få alle ressourcer den har brug for samtidig med at der er nok til at en anden process kan få ressourcer. 
+Måden hvorpå algoritmen kan afgøre om det er sikkert at allokere ressourcer til en proces er ved at tjekke om tilstanden efter ressourcerne er allokeret, er en sikker tilstand. En sikker tilstand opnås når alle processer kan færdiggøres. For at opnå en sikker tilstand kan man bruge en metode der benytter sig af to variabler, en vektor ${Work}$, der afspejler ${available}$ vektoren og en bool array ${Finish[m]}$ med længden ${m-1}$, altså antallet af processer.
+Disse variabler bliver brugt til at afgøre om en tilstand er sikker således:
 
-Hvis man antager at der er 5 resourcer af typen B og der er tre processer 1, 2, 3. Proces 1 kommer med en forespørgsel om at få 3B ressourcer. For at tilfredse dette behov så vil Banker's algoritme tjekke safe states, ved at se om den kan allokere de ressourcer. Hvis ja, kigger den på tilstanden efter resourcen er blevet tildelt og ser om der er en proces der stadig kan få tilfredsstillet sit behov for rescourcer, dette gentages så den kan se at alle processer stadig kan køre. 
+1. Hvis ${Finish[i] == false}$ og ${need[i] \leq Work}$ er sandt forsæt ellers gå til trin 3
+2. Sæt ${Work = Work + allocation[i]}$ og ${Finish[i] = true}$ gå til trin 1
+3. Hvis ${Finish[i] == true}$ for alle i, hvor ${0 \leq i < m}$.
 
-Med denne metode undgås deadlocks fordi der på intet tidspunkt er processer der venter på rescourcer som de aldrig kan få, mindst en process kan altid få nok rescourcer til at afslutte. Denne algoritme har dog nogle downsides som er ret markante. En af dem er, at man er nød til at vide på forhand hvilke og hvor mange ressourcer en process maksimum skal bruge, hvilket er et sjældent scenarie. Udover dette så at antage, at en proces skal frigive alle sine resourcer når den terminere er i sig selv et vigtigt for algoritmen, men da man ikke kan sige levetiden på en given proces, kan man måske vente flere minutter, timer eller dage på, at de ressourcer tilbage. Dette er ikke praktisk for et realistisk system. I vores verden i dag, er det ikke logisk at have et statisk antal processor, da verden er begyndt at bruge mange flere tråde som bliver oprettet og lukket igen og igen i løbet af et programs levetid.
+Hvis de ovenstående trin kan lade sig gøre, betyder dette, at der findes minimum en sikker sekvens hvorledes processerne kan få allokeret ressourcer til at udføre deres arbejde.
  
 \newpage

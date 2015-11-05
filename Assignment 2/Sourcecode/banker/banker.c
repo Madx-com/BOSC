@@ -185,8 +185,11 @@ int checksafety()
 		work[i] = s->available[i];
 	}
 
-	for(i = 0; i < m; i++)
+	i = 0;
+	while(i < m)
 	{
+		avail = 0;
+		need = 0;
 		printf("Checking safety of process %d\n", i);
 		for(j = 0; j < n; j++)
 		{
@@ -210,6 +213,9 @@ int checksafety()
 			}
 			return 1;
 		}
+		
+		i++;
+		if(i == m) i = 0;		
 	}
 }
 

@@ -114,8 +114,8 @@ Dette har vi gjort ved brug af `pthread_mutex_lock(l->mtx)` og `pthread_mutex_un
 
 ## Producer-Consumer problemet
 Producer-Consumer problemet er et velkendt problem, hvor producenter producerer varer, som consumers konsumerer. Problemet ligger i at stoppe consumers med at konsumerer vare når der ikke er flere varer og ligeledes at stoppe producenter med at producerer varer når lageret er fyldt.
-Dette kan gøres ved brug af semaphores, da den netop har den funktionalitet der efterspørges i form af funktionerne `sem_wait()` og `sem_post()`.
-I programmet har vi implementeret en `struct PC`, der indeholder vores linked list, der fungerer som lager, og tre semaphores, `full` til at indikerer at der er vare i lageret, `empty` en til at indikerer at der er plads i lageret og `mutex` en der agerer som en mutex.
+Dette kan gøres ved brug af semaphores, da den netop har den funktionalitet der efterspørges, da vi kan waite og poste, som afklaret i teorien.
+I programmet har vi implementeret en `struct PC`, der indeholder vores linked list, der fungerer som lager, og tre semaphores, `full` til at indikerer vare i lageret, `empty` til at indikerer plads i lageret og `mutex` der agerer som en mutex.
 
 Programmet skal tage følgende fire input:
 
@@ -180,13 +180,11 @@ for(i = 0; i < m; i++)
 }
 ~~~
 
-Det næste handlede om at tjekke om programmet var i en safe state eller en unsafe state.
-For at gøre dette lavede vi en metode `checksafety()`, der kopiere det kritiske indhold af staten og simulerer eksekvering af alle processerne. 
-Hvis dette lykkedes er vi i en safe state, ellers er vi ikke og skal stoppe programmet.
+Det næste handlede om at tjekke om programmet var i en sikker tilstand eller en usikker tilstand.
+Ved at følge teorien lavede vi en metode `checksafety()` der benytter sig af to arrays, `work` og `finish` og to sum variabler der benyttes til at tjeke om ${need[i] \leq work}$. Metoden simulerer kørsel af processerne ved at frigive deres ressourcer til `work` og sætte `finish` for den givne process til 1. Metoden returnerer 0 hvis der ikke er en sikker sekvens og 1 hvis der er.
 
-Når dette er gjort laver programmet nogle forespørgsler på ressurser, som vi håndterer i `resource_request()`.
-I denne metode har vi fulgt teorien, med hensyn til at tjekke forespørgslen er inden for `need`, hvilket er et ekstra tjek eftersom når forespørgslen er beregnet ud fra `need` i `generate_request()`, men i tilfælde af at en bruger indtaster en forespørgsel er dette tjek godt at have.
-Derudover ser vi på om `available` ikke bliver overskredet af forespørgslen. Dette tjek er muligvis ikke nødvendigt, da en mulig simulation kan frigive nok ressourser på et andet tidspunkt. Til sidst hvis alt er gået godt, tildeler vi ressurserne, men vælger lave en kopi af de nuværende `available`, `need` og `allocation`. Dette gøres fordi vi efter tildelingen anvender `checksafety()` til at finde ud af om det er i orden, hvis ikke går vi tilbage til de tidligere værdier.
+Med denne metode implementeret fokuseret vi på funktionen der skal benytte den mest, og det er `resource_request()`, som skal tage imod forespørgsler om ressourcer og afgøre ved brug af `checksafety()` om det er sikkert at allokere ressourcerne.
+Denne metode tjekker først om forespørgslen er mindre eller lig behovet for processen og om der er nok ledige ressourcer på nuværende tidspunkt. Hvis disse to kriterier er opfyldt, laves der en backup af processens nuværende sikre tilstand, hvorefter ressourcerne allokeres. Efter dette benyttes `checksafety()` til at afgøre om den nye tilstand er sikker. Hvis den ikke er sikker, benyttes backup variablerne til at gå tilbage til den tidligere sikre tilstand.
 
-Til sidst implementeret vi funktionen `resource_release()`, der skal frigive ressurser fra en proces. Ligesom en bank tager vi imod det og opdatere `available`, `need` og `allocation`.
+Til sidst implementeret vi funktionen `resource_release()`, der skal frigive ressourcer fra en proces afhængig af en forespørgsel. Dette er ret ligetil da det eneste vi skal sikre er at forespørgslen ikke er større end de allokeret ressourcer for den givne process.
 
