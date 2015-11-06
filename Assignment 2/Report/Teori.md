@@ -36,7 +36,7 @@ Algoritmen benytter matriser til at allokere ressourcer, ${R}$, til processer, $
 
 I algoritmen er der 3 matriser i alt, med størrelsen ${m \times n}$, hvor ${m}$ er antallet af processer og ${n}$ er antallet af resourse typer ${R}$. ${max[m \times n]}$ er en matrise som holder styr på hvor mange resourser en process kan modtage. ${need[m \times n]}$ er en matrise som angiver hvor mange ressourcer en given process mangler for de specifikke ressourcetyper ${R}$. ${allocated[m \times n]}$ er en matrise som håndtere allokeringen af ressourcer på processerne på et givent tidspunkt. Matrisen ${need}$ er beregnet ud fra ${max - allocated}$.
 
-Måden hvorpå algoritmen kan afgøre om det er sikkert at allokere ressourcer til en proces er ved at tjekke om tilstanden efter ressourcerne er allokeret, er en sikker tilstand. En sikker tilstand opnås når alle processer kan færdiggøres. For at opnå en sikker tilstand kan man bruge en metode der benytter sig af to variabler, en vektor ${Work}$, der afspejler ${available}$ vektoren og en bool array ${Finish[m]}$ med længden ${m-1}$, altså antallet af processer.
+Måden hvorpå algoritmen kan afgøre om det er sikkert at allokere ressourcer til en proces er ved at tjekke om tilstanden efter ressourcerne er allokeret, er en sikker tilstand. En sikker tilstand opnås når alle processer kan færdiggøres i en sikker sekvens. For at opnå en sikker tilstand kan man bruge en metode der benytter sig af to variabler, en vektor ${Work}$, der afspejler ${available}$ vektoren og en bool liste ${Finish[m]}$ med længden ${m-1}$, altså antallet af processer.
 Disse variabler bliver brugt til at afgøre om en tilstand er sikker således:
 
 1. Hvis ${Finish[i] == false}$ og ${need[i] \leq Work}$ er sandt forsæt ellers gå til trin 3
@@ -44,5 +44,7 @@ Disse variabler bliver brugt til at afgøre om en tilstand er sikker således:
 3. Hvis ${Finish[i] == true}$ for alle i, hvor ${0 \leq i < m}$.
 
 Hvis de ovenstående trin kan lade sig gøre, betyder dette, at der findes minimum en sikker sekvens hvorledes processerne kan få allokeret ressourcer til at udføre deres arbejde.
+
+Teorien bag håndtering af en forespørgsel er at validere forespørgslen ved at tjekke at ${request[i] \leq need[i]}$ og ${request[i] \leq available[i]}$. Men det er kke nok med blot at validere forespørgslen, da det kan være forespørgslen invalidere andre processers kørsel og skaber en usikker tilstand, så man simulerer allokeringen af ressourcer og benytter ovenstående metode til at se om systemet stadig er i en sikker tilstand, hvis ikke annulleres forespørgslen således at de må vente og prøve senere. 
  
 \newpage

@@ -181,7 +181,8 @@ for(i = 0; i < m; i++)
 ~~~
 
 Det næste handlede om at tjekke om programmet var i en sikker tilstand eller en usikker tilstand.
-Ved at følge teorien lavede vi en metode `checksafety()` der benytter sig af to arrays, `work` og `finish` og to sum variabler der benyttes til at tjeke om ${need[i] \leq work}$. Metoden simulerer kørsel af processerne ved at frigive deres ressourcer til `work` og sætte `finish` for den givne process til 1. Metoden returnerer 0 hvis der ikke er en sikker sekvens og 1 hvis der er.
+Ved at følge teorien lavede vi en metode `checksafety()` der benytter sig af to arrays, `work` og `finish`. Implementationen følger teorien ved at tjekke om ${finish[i] == 0}$ og efterfølgende tjekke om ${need[i][j] \leq work[j]}$. 
+Metoden simulerer kørsel af processer i en while-løkke, der tjekker de to nævnte kriterier. Hvis kriterierne er sande frigives ressourcerne til `work` og `finish` sættes til 1. Til sidst tjekkes der om der er nogle processer der stadig ikke kan køres og der returneres 0 hvis der er og 1 hvis der ikke er.
 
 Med denne metode implementeret fokuseret vi på funktionen der skal benytte den mest, og det er `resource_request()`, som skal tage imod forespørgsler om ressourcer og afgøre ved brug af `checksafety()` om det er sikkert at allokere ressourcerne.
 Denne metode tjekker først om forespørgslen er mindre eller lig behovet for processen og om der er nok ledige ressourcer på nuværende tidspunkt. Hvis disse to kriterier er opfyldt, laves der en backup af processens nuværende sikre tilstand, hvorefter ressourcerne allokeres. Efter dette benyttes `checksafety()` til at afgøre om den nye tilstand er sikker. Hvis den ikke er sikker, benyttes backup variablerne til at gå tilbage til den tidligere sikre tilstand.

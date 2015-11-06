@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 	// create the add threads
 	for(i = 0; i < ADDS; i++)
 	{
-		pthread_create(&aid[i], &attr, thread_add, (void *)i);
+		pthread_create(&aid[i], &attr, thread_add, (void *) (long) i);
 	}
 		
 	for(i = 0; i < ADDS; i++)
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
 /* Adds a node to the list */
 void *thread_add(void *param)
 {
-	int id = (int *)param;
+	int id = (int) (long) param;
 
 	char str[10];
 	sprintf(str, "P%d", id);

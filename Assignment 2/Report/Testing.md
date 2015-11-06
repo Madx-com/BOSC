@@ -60,50 +60,9 @@ Success! All products produced and consumed.
 Ved testning af dette program blev vi overrasket over, at man ikke får nogen warnings fra compileren hvis man benytter `wait()` med en semaphore, da vi havde overset at vi på det tidspunkt ikke brugte `sem_wait()` og derfor fik en buffer der blev større end tilladt.
 
 ## Banker's Algoritme
-Banler's algoritme har vi testet ved brug af tre inputfiler, fil 1 har en sikker start tilstand mens fil 2 og 3 har usikre start tilstande.
+Banker's algoritme har vi testet ved brug af tre inputfiler, fil 1 har en sikker start tilstand mens fil 2 og 3 har usikre start tilstande.
 For at tjekke om `checksafety()` fungerer efter hensigten og finder usikre start tilstande brugte vi inputfil 2 og 3.
-Bemærk at al testing til Banker's er gjort på baggrund af observationer ved kørsel af programmet.
-
-~~~c
-ok@ok:~/Dokumenter/BOSC/Assignment 2/Sourcecode/banker$ ./banker < input2.txt
-Number of processes: Number of resources: Resource vector: Enter max matrix: Enter allocation matrix: 
-Need matrix:
-R1 R2 R3 
-2  2  2
-1  0  2
-1  0  3
-4  2  0
-Availability vector:
-R1 R2 R3 
-1  1  2
-Checking safety of process 0
-Initial state unsafe!
-~~~
-
-Inputfil 2 blev fundet usikker som efter hensigten.
-
-~~~
-ok@ok:~/Dokumenter/BOSC/Assignment 2/Sourcecode/banker$ ./banker < input3.txt
-Number of processes: Number of resources: Resource vector: Enter max matrix: Enter allocation matrix: 
-Need matrix:
-R1 R2 R3 
-0  0  0
-2  2  2
-2  2  2
-3  3  3
-Availability vector:
-R1 R2 R3 
-0  0  0
-Checking safety of process 0
-Checking safety of process 1
-Initial state unsafe!
-~~~
-
-Inputfil 3 blev ligeledes fundet usikker.
-
-For at teste resten af funktionaliteten med hensyn til forespørgsler om allokering af ressourcer eller frigivelse af ressourcer kørte vi programmet med inputfil 1.
-Vi er dog opmærksomme på at der er nogle problemer med hensyn til den udleveret kode således at der er en uendelig løkke, men denne har vi ikke gjort noget ved.
-Det første vi undersøgte da vi kørte programmet var om den kunne afgøre at inputfilens start tilstand var sikker og forsætte.
+Input fil 1 er ret ligetil, siden intet er allokeret fra starten vil alle processer være i stand til at køre. Dette kan ses i transriptet forneden, hvordan programmet tjekker alle processer og når den kommer tilbage til process 0 afgør den at programmet er i en sikker tilstand.
 
 ~~~c
 ok@ok:~/Dokumenter/BOSC/Assignment 2/Sourcecode/banker$ ./banker < input.txt
@@ -126,7 +85,57 @@ Initial state safe!
 ..
 ~~~
 
-Her ses det at start tilstanden er sikker fra inputfilen og programmet kan nu forsætte og genererer forespørgsler.
+Input fil 2 vil resulterer i en usikker tilstand da der på intet tidspunkt kan køre en process, grundet need vil altid være større end available, hvilket programmet også vurdere efter at have simuleret alle processers kørsel.
+
+~~~c
+ok@ok:~/Dokumenter/BOSC/Assignment 2/Sourcecode/banker$ ./banker < input2.txt
+ok@ok:~/Desktop/git-repos/BOSC/Assignment 2/Sourcecode/banker$ ./banker < input2.txt
+Number of processes: Number of resources: Resource vector: Enter max matrix: Enter allocation matrix: 
+Need matrix:
+R1 R2 R3 
+1  2  0
+1  0  2
+1  0  3
+4  2  0
+Availability vector:
+R1 R2 R3 
+0  1  0
+Checking safety of process 0
+Checking safety of process 1
+Checking safety of process 2
+Checking safety of process 3
+Initial state unsafe!
+~~~
+
+Kørsel af input fil 3 vil også resulterer i en usikker tilstand, men den bekræfter at simuleringen af processerne er som forventet, da process 0 vil i det første tjek vil være sand og fortælle algoritmen at den minimum skal simulerer en runde af alle processerne en gang til. Dette kan ses forneden.
+
+~~~
+ok@ok:~/Desktop/git-repos/BOSC/Assignment 2/Sourcecode/banker$ ./banker < input3.txt
+Number of processes: Number of resources: Resource vector: Enter max matrix: Enter allocation matrix: 
+Need matrix:
+R1 R2 R3 
+0  0  0
+2  2  2
+2  2  2
+3  3  3
+Availability vector:
+R1 R2 R3 
+0  0  0
+Checking safety of process 0
+Checking safety of process 1
+Checking safety of process 2
+Checking safety of process 3
+Checking safety of process 0
+Checking safety of process 1
+Checking safety of process 2
+Checking safety of process 3
+Initial state unsafe!
+~~~
+
+For at teste resten af funktionaliteten med hensyn til forespørgsler om allokering af ressourcer eller frigivelse af ressourcer kørte vi programmet med inputfil 1.
+Vi er dog opmærksomme på at der er nogle problemer med hensyn til den udleveret kode således at der kan forekomme en uendelig løkke grundet en deadlock forudsaget af en starvation, men denne har vi ikke gjort noget ved.
+
+Forneden ses det at process 1 anmoder om ressourcerne 0 0 1, og får dem tildelt. Dette viser at tildeling af ressourcerne går efter hensigten, men det interessante er at se når der kommer forespørgsler der ikke bliver godkendt.
 
 ~~~c
 ..
@@ -140,34 +149,36 @@ R1 R2 R3
 ..
 ~~~
 
-I dette tilfælde har process 1 anmodet om ressourcerne 0 0 1, og får dem tildelt. Dette viser at tildeling af ressourcerne går efter hensigten, men det interessante er at se når der kommer forespørgsler der ikke bliver godkendt.
+I tilfælde af at en forespørgsel bliver anset som usikker skal den spørge igen efter noget tid som defineret i teorien.
 
 ~~~c
 ..
-Process 1 request vector: 3 0 2 
-Checking safety of process 0
+Process 3 request vector: 1 0 0 
+..
 Request leads to unsafe state. Request Denied!
-Process 1 request vector: 3 0 2 
-Checking safety of process 0
+Process 3 request vector: 1 0 0 
+..
 Request leads to unsafe state. Request Denied!
-Process 1 request vector: 3 0 2 
+Process 3 request vector: 1 0 0 
+..
+Request leads to unsafe state. Request Denied!
 ..
 ~~~
 
-Dette scenarie viser netop et tilfælde hvor der på et givent tidspunkt kom en forespærgsel fra process 1 om at få ressourcerne 3 0 2 og var ikke blevet godkendt i flere omgange. Forespørgslen er dog korrekt og inden for rammerne, så dette betyder at den vil forsætte med at spørge og programmet skal på et givent tidspunkt være i stand til at give ressourcerne, hvilket også er tilfældet.
+Froven ses det at der er en forespørgsel fra process 3 på ressourcerne 1 0 0, som bliver anset som usikker i flere tilfælde. Men i senere tilfælde er det meget sandsynligt at der vil forekomme et scenarie hvor den kan betragtes som sikker og får ressourcerne tildelt, hvilket kan ses i det følgende transcript.
 
 ~~~c
-..
-Process 1 request vector: 3 0 2 
+Process 3: Requesting resources.
+Process 3 request vector: 1 0 0 
 ..
 Request leads to safe state. Request Granted!
 Vector changed: Availability vector:
 R1 R2 R3 
-2  1  1
+4  1  3
 ..
 ~~~
 
-Den sidste funktion i programmet er frigivelsen af ressourcer, hvilket kan ses forneden.
+Den sidste funktion i programmet er frigivelsen af ressourcer, hvilket er ret lige til, da den eneste fejl der kan forekomme er en forespørgsel der er større end det der er allokeret for processen, men det er der allerede taget forbehold for og burde ikke fremkomme. Transcriptet forneden viser en release fra process  der gennemføres.
 
 ~~~c
 ..
@@ -176,7 +187,7 @@ Process 3 release vector: 2 0 0
 Released resources
 Availability vector:
 R1 R2 R3 
-5  1  3 
+5  2  3 
 ..
 ~~~
 

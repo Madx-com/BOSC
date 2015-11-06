@@ -76,13 +76,13 @@ int main(int argc, char *argv[])
 	// create the producers
 	for(i = 0; i < PRODUCERS; i++)
 	{	
-		pthread_create(&pid[i], &attr, producer, (void *)i);
+		pthread_create(&pid[i], &attr, producer, (void *) (long) i);
 	}
 	
 	// create the consumers
 	for(i = 0; i < CONSUMERS; i++)
 	{
-		pthread_create(&cid[i], &attr, consumer, (void *)i);
+		pthread_create(&cid[i], &attr, consumer, (void *) (long) i);
 	}
 
 	// destroy attribute
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 /* Producer thread function */
 void *producer(void *param)
 {
-	int id = (int *)param;
+	int id = (int) (long) param;
 	Node *n;
 
 	while(p < PRODUCTS_IN_TOTAL)
@@ -149,7 +149,7 @@ void *producer(void *param)
 /* Consumer thread function */
 void *consumer(void *param)
 {
-	int id = (int *)param;
+	int id = (int) (long) param;
 	Node *n;
 
 	while(c < PRODUCTS_IN_TOTAL)		

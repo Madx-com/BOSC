@@ -173,9 +173,6 @@ int checksafety()
 {
 	int i, j, work[n], finish[m];
 
-	// sum variables
-	int need = 0, avail = 0;
-
 	for(i = 0; i < m; i++)
 	{
 		finish[i] = 0;
@@ -186,37 +183,48 @@ int checksafety()
 	}
 
 	i = 0;
+	int dorepeat = 0;
 	while(i < m)
 	{
-		avail = 0;
-		need = 0;
 		printf("Checking safety of process %d\n", i);
-		for(j = 0; j < n; j++)
+		if(finish[i] == 0)
 		{
-			avail += work[j];
-			need += s->need[i][j];
-		}
-
-		if(finish[i] == 0 && need <= avail)
-		{
+			// flag for running process
+			int check = 1;
 			for(j = 0; j < n; j++)
 			{
-				work[j] = work[j] + s->allocation[i][j];
+				if(s->need[i][j] > work[j])
+				{
+					check = 0;
+				}
 			}
-			finish[i] = 1;
-		}
-		else
-		{
-			for(j = 0; j < m; j++)
+			
+			// simulate run of process
+			if(check == 1)
 			{
-				if(finish[j] == 0) return 0;
+				for(j = 0; j < n; j++)
+				{
+					work[j] = work[j] + s->allocation[i][j];
+				}
+				finish[i] = 1;
+				dorepeat = 1;
 			}
-			return 1;
 		}
-		
+
 		i++;
-		if(i == m) i = 0;		
+		if(i == m && dorepeat == 1) 
+		{
+			i = 0;
+			dorepeat = 0;
+		}
 	}
+
+	for(i = 0; i < m; i++)
+	{
+		if(finish[i] == 0) return 0;
+	}
+	return 1;
+
 }
 
 void printstate()
