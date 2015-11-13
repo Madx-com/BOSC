@@ -1,0 +1,31 @@
+% Contents of listings-setup.tex
+\usepackage[dvipsnames]{xcolor}
+\usepackage{inconsolata}
+\usepackage[T1]{fontenc}
+
+\definecolor{darkgreen}{RGB}{3,102,17}
+\definecolor{darkpink}{RGB}{255,141,141}
+
+\lstset{
+		language=C++,
+		basicstyle=\ttfamily,
+    numbers=left,
+    numberstyle=\footnotesize,
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{black!10},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=true,
+    breakautoindent=true,
+    linewidth=15cm,
+		keywordstyle=\color{brown}\ttfamily,
+    stringstyle=\color{darkpink}\ttfamily,
+    commentstyle=\color{blue}\ttfamily,
+		emph={int,char,double,float,unsigned, void, const},
+    emphstyle={\color{darkgreen}}
+}
