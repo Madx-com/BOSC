@@ -15,8 +15,30 @@ how to use the page table and disk interfaces.
 #include <string.h>
 #include <errno.h>
 
+char *physmem;
+
+struct disk *disk;
+int *loaded_pages;
+
 void page_fault_handler( struct page_table *pt, int page )
 {
+	int *flag = malloc(sizeof(int));
+	int *frame = malloc(sizeof(int));
+
+	page_table_get_entry(pt, page, frame, flag);
+
+	switch(flag)
+	{
+		case PROT_READ:
+			
+		case PROT_WRITE:
+			
+		case PROT_EXEC:
+			
+		case default:
+			
+	}
+
 	printf("page fault on page #%d\n",page);
 	exit(1);
 }
@@ -32,7 +54,9 @@ int main( int argc, char *argv[] )
 	int nframes = atoi(argv[2]);
 	const char *program = argv[4];
 
-	struct disk *disk = disk_open("myvirtualdisk",npages);
+	loaded_pages = malloc(sizeof(int) * nframes);
+
+	disk = disk_open("myvirtualdisk",npages);
 	if(!disk) {
 		fprintf(stderr,"couldn't create virtual disk: %s\n",strerror(errno));
 		return 1;
@@ -47,7 +71,7 @@ int main( int argc, char *argv[] )
 
 	char *virtmem = page_table_get_virtmem(pt);
 
-	char *physmem = page_table_get_physmem(pt);
+	physmem = page_table_get_physmem(pt);
 
 	if(!strcmp(program,"sort")) {
 		sort_program(virtmem,npages*PAGE_SIZE);
