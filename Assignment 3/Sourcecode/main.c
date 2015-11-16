@@ -22,67 +22,95 @@ int *loaded_pages;
 
 void page_fault_handler( struct page_table *pt, int page )
 {
-	int *flag = malloc(sizeof(int));
-	int *frame = malloc(sizeof(int));
+	int flag;
+	int frame;
 
-	page_table_get_entry(pt, page, frame, flag);
+	//get frame and flag for the page
+	page_table_get_entry(pt, page, &frame, &flag);
 
 	switch(flag)
 	{
 		case PROT_READ:
-			
+			//TODO:ADD CODE TO CHECK loaded_pages
+			//read from disk
+			disk_read(disk, page, &physmem[frame*PAGE_SIZE]);
+			return;
 		case PROT_WRITE:
-			
+			//TODO: ADD CODE FOR loaded_pages
+			//write to disk
+			disk_write(disk, page, &physmem[frame*PAGE_SIZE]);
+			return;
 		case PROT_EXEC:
-			
-		case default:
-			
+			//do nothing...
+			return;
 	}
-
 	printf("page fault on page #%d\n",page);
 	exit(1);
 }
 
 int main( int argc, char *argv[] )
 {
-	if(argc!=5) {
+	if(argc!=5) 
+	{
 		printf("use: virtmem <npages> <nframes> <rand|fifo|custom> <sort|scan|focus>\n");
 		return 1;
 	}
 
 	int npages = atoi(argv[1]);
 	int nframes = atoi(argv[2]);
+	const char *algorithm = argv[3];
 	const char *program = argv[4];
 
 	loaded_pages = malloc(sizeof(int) * nframes);
 
 	disk = disk_open("myvirtualdisk",npages);
-	if(!disk) {
+	if(!disk) 
+	{
 		fprintf(stderr,"couldn't create virtual disk: %s\n",strerror(errno));
 		return 1;
 	}
 
-
 	struct page_table *pt = page_table_create( npages, nframes, page_fault_handler );
-	if(!pt) {
+	if(!pt) 
+	{
 		fprintf(stderr,"couldn't create page table: %s\n",strerror(errno));
 		return 1;
 	}
-
+	
 	char *virtmem = page_table_get_virtmem(pt);
 
 	physmem = page_table_get_physmem(pt);
 
-	if(!strcmp(program,"sort")) {
+	if(!strcmp(algorithm, "rand")) 
+	{
+		
+	}
+	else if(!strcmp(algorithm, "fifo"))
+	{
+		
+	}
+	else if(!strcmp(algorithm, "custom"))
+	{
+		
+	}
+
+	if(!strcmp(program,"sort")) 
+	{
 		sort_program(virtmem,npages*PAGE_SIZE);
 
-	} else if(!strcmp(program,"scan")) {
+	} 
+	else if(!strcmp(program,"scan")) 
+	{
 		scan_program(virtmem,npages*PAGE_SIZE);
 
-	} else if(!strcmp(program,"focus")) {
+	} 
+	else if(!strcmp(program,"focus")) 
+	{
 		focus_program(virtmem,npages*PAGE_SIZE);
 
-	} else {
+	} 
+	else 
+	{
 		fprintf(stderr,"unknown program: %s\n",argv[3]);
 
 	}
