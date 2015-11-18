@@ -35,7 +35,7 @@ void get_swap_frame(int *vFrame)
 			fifo_counter = fifo_counter % nframes;
 			return;
 		case 2:
-			//TODO: MAKE A FASTER ALGORITM
+			//TODO: MAKE A FASTER ALGORITM(CHECK NFU)
 			return;
 	}
 }
