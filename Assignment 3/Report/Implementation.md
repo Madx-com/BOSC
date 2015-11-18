@@ -1,3 +1,5 @@
+\newpage
+
 # Implementation
 
 ##Page Fault Håndtering
