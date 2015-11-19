@@ -20,7 +20,7 @@ char *physmem;
 struct disk *disk;
 int npages, nframes;
 int *loaded_pages, *clock;
-int pageswap, fifo_counter, fault_counter = 0;
+int pageswap, fifo_counter, fault_counter = 0, write_count = 0, read_count = 0;
 
 void print_second_chance()
 {
@@ -102,6 +102,7 @@ void page_fault_handler( struct page_table *pt, int page )
 					page_table_set_entry(pt, page, i, PROT_READ);
 					disk_read(disk, page, &physmem[i*PAGE_SIZE]);
 					loaded_pages[i] = page;
+					read_count++;
 
 					//page_table_print_entry(pt,page);
 					//printf("\n");
@@ -127,10 +128,12 @@ void page_fault_handler( struct page_table *pt, int page )
 			{
 				//write victim from physmem to disk
 				disk_write(disk, vPage, &physmem[vFrame*PAGE_SIZE]);
+				write_count++;
 			}
 
 			//read from disk to victim frame
 			disk_read(disk, page, &physmem[vFrame*PAGE_SIZE]);
+			read_count++;
 
 			//update page table entries
 			page_table_set_entry(pt, page, vFrame, PROT_READ);
@@ -246,7 +249,7 @@ int main( int argc, char *argv[] )
 	{
 		fprintf(stderr,"unknown program: %s\n",argv[3]);
 	}
-	printf("Faults: %d\n", fault_counter);
+	printf("Faults: %d Reads: %d Writes: %d\n", fault_counter, read_count, write_count);
 	page_table_delete(pt);
 	disk_close(disk);
 
