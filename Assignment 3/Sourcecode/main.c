@@ -19,11 +19,30 @@ char *physmem;
 
 struct disk *disk;
 int npages, nframes;
-int *loaded_pages;
+int *loaded_pages, *clock;
 int pageswap, fifo_counter, fault_counter = 0;
+
+void print_second_chance()
+{
+	int i;
+	printf("+---+---+\n");
+	for(i = 0; i < nframes; i++)
+	{
+		if(fifo_counter == i)
+		{
+			printf("| %d | %d | <-\n", loaded_pages[i], clock[i]);
+		}
+		else
+		{
+			printf("| %d | %d |\n", loaded_pages[i], clock[i]);
+		}
+		printf("+---+---+\n");	
+	}
+}
 
 void get_swap_frame(int *vFrame)
 {
+	int i;
 	switch(pageswap)
 	{
 		case 0:
@@ -35,7 +54,36 @@ void get_swap_frame(int *vFrame)
 			fifo_counter = fifo_counter % nframes;
 			return;
 		case 2:
-			//TODO: MAKE A FASTER ALGORITM(CHECK NFU)
+			print_second_chance();
+			i = fifo_counter;
+			int do_repeat = 1;
+			while(do_repeat == 1)
+			{
+				//check if it's reference bit is 0
+				if(clock[i] == 0)
+				{
+					do_repeat = 0;
+					*vFrame = i;
+					fifo_counter++;
+					fifo_counter = fifo_counter % nframes;
+					clock[i] = 1;
+				}
+				else
+				{
+					clock[i] = 0;
+					i++;
+					i = i % nframes;
+					//second chance used
+					if(i == fifo_counter)
+					{
+						do_repeat = 0;
+						*vFrame = fifo_counter;
+						fifo_counter++;
+						fifo_counter = fifo_counter % nframes;
+						clock[i] = 1;
+					}
+				}
+			}
 			return;
 	}
 }
@@ -46,16 +94,14 @@ void page_fault_handler( struct page_table *pt, int page )
 	int flag;
 	int frame;
 
-	printf("Page fault occurred\n");
 	//get frame and flag for the page
 	page_table_get_entry(pt, page, &frame, &flag);
-	page_table_print_entry(pt, page);
+	page_table_print_entry(pt,page);
 	int i;
 	switch(flag)
 	{
 		case 0:
-			printf("IN 0\n");
-			//check for free frame			
+			//check for free frame
 			for(i = 0; i < nframes; i++)
 			{
 				if(loaded_pages[i] == -1)
@@ -63,43 +109,63 @@ void page_fault_handler( struct page_table *pt, int page )
 					//read from disk to physmem
 					page_table_set_entry(pt, page, i, PROT_READ);
 					disk_read(disk, page, &physmem[i*PAGE_SIZE]);
-					page_table_print_entry(pt, page);
-					printf("\n");
 					loaded_pages[i] = page;
+
+					page_table_print_entry(pt,page);
+					printf("\n");
+					if(pageswap == 2)
+					{			
+						clock[i] = 1;
+					}
 					return;
 				}
 			}
 			printf("SIDESWAPPING\n");
 			//variables for victim
 			int vFrame, vPage, vFlag;
+
 			//get the victim frame
 			get_swap_frame(&vFrame);
+
 			//set the victim page
 			vPage = loaded_pages[vFrame];
+
 			//get the victim flag
 			page_table_get_entry(pt, vPage, &vFrame, &vFlag);
-			//check for RW flag
-			if(vFlag == (PROT_READ|PROT_WRITE))
+
+			//check for RW flag			
+			int rw = (PROT_READ|PROT_WRITE);
+			if(vFlag == rw)
 			{
 				//write victim from physmem to disk
 				disk_write(disk, vPage, &physmem[vFrame*PAGE_SIZE]);
 			}
+
 			//read from disk to victim frame
 			disk_read(disk, page, &physmem[vFrame*PAGE_SIZE]);
+
 			//update page table entries
 			page_table_set_entry(pt, page, vFrame, PROT_READ);
 			page_table_set_entry(pt, vPage, 0, 0);
-			page_table_print_entry(pt, page);
+			page_table_print_entry(pt,page);
 			printf("\n");
 			//update loaded_pages
 			loaded_pages[vFrame] = page;
-			return;
 
+			if(pageswap == 2)
+			{			
+				clock[vFrame] = 1;
+			}
+			
+			return;
 		case PROT_READ:
-			printf("IN READ\n");
 			page_table_set_entry(pt, page, frame, PROT_READ|PROT_WRITE);
-			page_table_print_entry(pt, page);
+			page_table_print_entry(pt,page);
 			printf("\n");
+			if(pageswap == 2)
+			{			
+				clock[frame] = 1;
+			}
 			return;
 	}
 	printf("page fault on page #%d\n",page);
@@ -157,6 +223,12 @@ int main( int argc, char *argv[] )
 	else if(!strcmp(algorithm, "custom"))
 	{
 		pageswap = 2;
+		fifo_counter = 0;
+		clock = malloc(sizeof(int) * nframes);
+		for(i = 0; i < nframes; i++)
+		{
+			clock[i] = 0;
+		}
 	}
 	else
 	{
