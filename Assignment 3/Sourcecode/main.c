@@ -54,7 +54,7 @@ void get_swap_frame(int *vFrame)
 			fifo_counter = fifo_counter % nframes;
 			return;
 		case 2:
-			print_second_chance();
+			//print_second_chance();
 			i = fifo_counter;
 			int do_repeat = 1;
 			while(do_repeat == 1)
@@ -66,7 +66,6 @@ void get_swap_frame(int *vFrame)
 					*vFrame = i;
 					fifo_counter++;
 					fifo_counter = fifo_counter % nframes;
-					clock[i] = 1;
 				}
 				else
 				{
@@ -80,7 +79,6 @@ void get_swap_frame(int *vFrame)
 						*vFrame = fifo_counter;
 						fifo_counter++;
 						fifo_counter = fifo_counter % nframes;
-						clock[i] = 1;
 					}
 				}
 			}
@@ -96,7 +94,9 @@ void page_fault_handler( struct page_table *pt, int page )
 
 	//get frame and flag for the page
 	page_table_get_entry(pt, page, &frame, &flag);
-	page_table_print_entry(pt,page);
+
+	//page_table_print_entry(pt,page);
+
 	int i;
 	switch(flag)
 	{
@@ -111,16 +111,12 @@ void page_fault_handler( struct page_table *pt, int page )
 					disk_read(disk, page, &physmem[i*PAGE_SIZE]);
 					loaded_pages[i] = page;
 
-					page_table_print_entry(pt,page);
-					printf("\n");
-					if(pageswap == 2)
-					{			
-						clock[i] = 1;
-					}
+					//page_table_print_entry(pt,page);
+					//printf("\n");
+
 					return;
 				}
 			}
-			printf("SIDESWAPPING\n");
 			//variables for victim
 			int vFrame, vPage, vFlag;
 
@@ -147,21 +143,25 @@ void page_fault_handler( struct page_table *pt, int page )
 			//update page table entries
 			page_table_set_entry(pt, page, vFrame, PROT_READ);
 			page_table_set_entry(pt, vPage, 0, 0);
-			page_table_print_entry(pt,page);
-			printf("\n");
 			//update loaded_pages
 			loaded_pages[vFrame] = page;
 
 			if(pageswap == 2)
 			{			
-				clock[vFrame] = 1;
+				clock[vFrame] = 0;
 			}
 			
+			//print_second_chance();
+			//page_table_print_entry(pt,page);						
+			//printf("\n");
+
 			return;
 		case PROT_READ:
 			page_table_set_entry(pt, page, frame, PROT_READ|PROT_WRITE);
-			page_table_print_entry(pt,page);
-			printf("\n");
+			
+			//page_table_print_entry(pt,page);
+			//printf("\n");
+
 			if(pageswap == 2)
 			{			
 				clock[frame] = 1;
