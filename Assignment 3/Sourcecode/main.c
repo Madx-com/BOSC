@@ -72,14 +72,6 @@ void get_swap_frame(int *vFrame)
 					clock[i] = 0;
 					i++;
 					i = i % nframes;
-					//second chance used
-					if(i == fifo_counter)
-					{
-						do_repeat = 0;
-						*vFrame = fifo_counter;
-						fifo_counter++;
-						fifo_counter = fifo_counter % nframes;
-					}
 				}
 			}
 			return;

@@ -32,5 +32,5 @@ Denne udskiftningsalgoritme kræver en lidt mere i sin implementering da den har
 
 Ved initialisering af `clock`, sættes alle bit til 0. I `page_fault_handler()` under indlæsning af data efter udskiftning at sidens ramme skal sættes til 0, da side udskiftning foretages i `switch` erklæringens sag 0, hvilket foroven er der hvor siden får et læse flag. I `switch` erklæringens `PROT_READ` sag, skal `clock` sættes til 1 da denne sides flag nu er et læse og skrive flag.
 
-Under selve udskiftningen skal der gennemløbes cirkulært gennem listen.
+Under selve udskiftningen skal der gennemløbes cirkulært gennem `clock` hvor startpunktet er tælleren `fifo_counter`'s værdi, her benyttes en while-løkke. I løkken tjekkes reference bittens værdi. Hvis den er 0 kan denne ramme godt tildeles og tælleren forhøjes på samme måde som i FIFO udskiftningen. I tilfælde af at den `clock`'s værdi er 1, sættes denne til 0, da den nu får en anden chance.
 
