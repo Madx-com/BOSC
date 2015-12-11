@@ -126,5 +126,46 @@ Diagrammet foroven viser scan programmet med Second-Chance algoritmen.
 ![](Diagrams/custom_focus.png)
 Diagrammet foroven viser focus programmet med Second-Chance algoritmen.
 
+## Custom (LRU) udskiftning
+
+### Sort
+| Pages | Frames | Faults | Reads | Writes |
+|-------|--------|--------|-------|--------|
+|   100 |     10 |   1720 |  1091 |    625 |
+|   100 |     25 |   1244 |   791 |    441 |
+|   100 |     50 |    805 |   503 |    278 |
+|   100 |     75 |    540 |   295 |    208 |
+|   100 |     90 |    548 |   302 |    202 |
+|   100 |    100 |    200 |   100 |      0 |
+
+![](Diagrams/lru_sort.png)
+Diagrammet foroven viser sort programmet med LRU algoritmen.
+
+### Scan
+| Pages | Frames | Faults | Reads | Writes |
+|-------|--------|--------|-------|--------|
+|   100 |     10 |   1160 |  1060 |     96 |
+|   100 |     25 |   1080 |   980 |     88 |
+|   100 |     50 |    960 |   860 |     76 |
+|   100 |     75 |    842 |   742 |     75 |
+|   100 |     90 |    794 |   694 |     90 |
+|   100 |    100 |    200 |   100 |      0 |
+
+![](Diagrams/lru_scan.png)
+Diagrammet foroven viser scan programmet med LRU algoritmen.
+
+### Focus
+| Pages | Frames | Faults | Reads | Writes |
+|-------|--------|--------|-------|--------|
+|   100 |     10 |    475 |   285 |    186 |
+|   100 |     25 |    431 |   259 |    160 |
+|   100 |     50 |    385 |   227 |    134 |
+|   100 |     75 |    302 |   175 |     90 |
+|   100 |     90 |    301 |   190 |    110 |
+|   100 |    100 |    200 |   100 |      0 |
+
+![](Diagrams/lru_focus.png)
+Diagrammet foroven viser focus programmet med LRU algoritmen.
+
 \newpage
 

@@ -1,0 +1,1 @@
+pandoc --template=default.latex --latex-engine=xelatex --listings -H listings-setup.tex -o Report.pdf Introduktion.md Teori.md Implementation.md Testing.md Konklusion.md Sourcecode.md --number-sections --toc

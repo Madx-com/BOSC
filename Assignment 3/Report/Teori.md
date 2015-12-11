@@ -18,9 +18,17 @@ Den tilfældige sideudskiftnings algoritme er en meget simpel algoritme, da den 
 Denne algoritme er også meget lige til, da man skal give den ramme der er blevet indlæst data i først. Dette kræver at der er behov for en tæller, der holder styr på hvilken ramme der skal frigives. Hver gang en ramme er frigivet forhøjes tælleren med en. Det skal dog huskes at for hver gang tælleren forhøjes skal den stadig være mellem 0 og antallet af rammer. Til dette kan modulo bruges.
 
 ## Custom udskiftning
-Til custom udskiftnings algoritmen ser vi nærmere på en udvidet form af FIFO udskiftnings algoritmen, Second-Chance algoritmen(også kaldet Clock algoritmen). Dette er på baggrund af at den i værste tilfælde stadig vil have samme antal page faults som FIFO algoritmen og dette mener vi er en acceptabel præmise.
+Til custom udskiftnings algoritmen har vi valgt at se på to algoritmer, den ene som er en udvidet form af FIFO udskiftnings algoritmen, Second-Chance algoritmen(også kaldet Clock algoritmen) og den anden værende LRU, Least Recently Used algoritmen som skulle være den mest optimerede end alle førnævnte algoritmer. 
+
+### Second-Chance
+Second-Chance ser vi nærmere på pga. at den i værste tilfælde stadig vil have samme antal page faults som FIFO algoritmen og dette mener vi er en acceptabel præmise.
+Udover dette er den også en approximation til LRU, så det ville være spændene at måle forskellen mellem disse.
 
 Selve algoritmen gør brug af en reference bit til hver ramme, der sættes til 0 når et element indlæses i hukommelsen med læse flaget og 1 når et element indlæses med skrivnings flaget. Desuden bruger den også en tæller ligesom FIFO.
 
 Når udskiftningsalgoritmen kaldes tjekkes der for et element med 0 som reference bit. Dette tjek startes fra tællerens position. Under gennemløbet sættes de reference bit der er 1 til 0, da dette er deres anden chance, idet da gennemløbet er cirkulært og det møder dette element igen vil den miste sin plads.
 
+### LRU
+Least Recently Used algoritmen går ud på at erstatte den side i den fysiske hukommelse der er blevet brugt mindst. Dette kan mindske antallet af page faults, indlæsninger og skrivninger, da man kan antage at det mindst anvendte side nok ikke bliver refereret igen foreløbigt. Teoretisk set så bliver denne algoritme bedre desto flere rammer der er og er en undtagelse for Belady's anomalitet.
+
+LRU algoritmen består af en liste over rammer i den fysiske hukommelse. For hver gang en side opdateres eller tilføjes i rammen sættes denne rammes værdi i listen til en "tids" værdi, hvilket kunne være en tæller. For at finde den mindst anvendte element i den fysiske hukommelse findes det element med den mindste tidsværdi eller hvis man benytter en tæller så det element med den højeste tæller værdi.
